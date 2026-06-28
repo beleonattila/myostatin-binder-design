@@ -9,6 +9,41 @@
 
 ---
 
+## Session Log — 2026-06-28 (infrastructure build)
+
+**What we accomplished this session (all infrastructure, no science steps run yet):**
+
+- Confirmed hardware/software: RTX 4050 (6 GB, Ada/sm_89), no prior conda, system Python 3.14 (unusable for the tools).
+- Installed **Miniforge** (conda 26.3.2 / mamba 2.5.0).
+- Restructured the project into a **reproducible scientific repo** (README, LICENSE, CITATION.cff, Makefile, mkdocs.yml, .gitignore, `envs/`, `scripts/`, `docs/` wiki).
+- Built and **GPU-verified all three conda environments** (`rfdiffusion`, `proteinmpnn`, `esm`) — including resolving a multi-layer RFdiffusion CUDA dependency hell (see traps below).
+- Wrote the full **MkDocs "wiki"** (background biology, runnable methods 1–6, reference/glossary).
+- Initialized **git** and made the first commit (`4315015`, 32 files).
+- Private step-by-step retrace lives in `SESSION_WALKTHROUGH.md` (git-ignored).
+
+**Decisions locked in (rationale in full below / in `docs/`):**
+
+| Decision | Choice | Why |
+|---|---|---|
+| Env manager | **conda/mamba**, not venv | only conda handles py3.9 + CUDA torch + dgl/SE3 binaries |
+| Docker | **deferred**, repo kept Docker-ready | valuable here, but would compete with the RFdiffusion learning goal |
+| Docs | **in-repo `docs/` (MkDocs Material)** | versioned with the code, reproducible |
+| License | **MIT** | permissive, standard |
+| RFdiffusion GPU stack | **one coherent conda-forge solve** + RFdiffusion via `pip --no-deps` | the fix that ended the dependency hell |
+
+> ✅ **Session committed.** `make` installed; the Makefile was hardened to source conda inside each recipe (recipes run in a bare non-interactive shell with no `~/.bashrc`). Two commits exist: `4315015` (initial scaffold) and a second "tooling + session docs" commit (this session log, all-conda recipe corrections, expanded Makefile, walkthrough ignore rule).
+
+## TODO — Next Session
+
+1. **Structure tooling check:** PyMOL is **not installed**. Step 1/2 need it (or Biopython, which is in the `esm` env). Decide: add `pymol-open-source` to a conda env, or do extraction in Biopython + superposition another way.
+2. **Step 1 — Target prep:** fetch **3HH2** → extract myostatin **chain A** → `data/prepared/myostatin_target.pdb`. Record the *resolved* residue range (watch for gaps); confirm numbering starts at Asp1 = 1. (Recipe: `docs/methods/01-target-prep.md`.)
+3. **Step 2 — Hotspots:** superpose 3HH2 chain A onto activin A in **1NYS**, list myostatin residues within 5 Å of ActRIIB, finalize `hotspots/hotspot_residues.txt` (5–8 residues). (Recipe: `docs/methods/02-hotspots.md`.)
+4. **Step 3 — First RFdiffusion run:** 20 designs; contig must match the *resolved* chain-A range; use the verified hotspots. `mamba activate rfdiffusion`, run from the `RFdiffusion/` clone. Watch the 6 GB VRAM limit.
+
+**Quick start command next session:** `cd` into the project and run `make verify` to confirm all three envs are still healthy before doing anything.
+
+---
+
 ## Scientific Rationale
 
 Myostatin (GDF-8) is a TGF-β superfamily member that negatively regulates muscle mass. It signals through the type II receptor ActRIIB. Inhibiting this interaction is a validated therapeutic strategy for muscle-wasting conditions and metabolic disease.
