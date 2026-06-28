@@ -1,0 +1,49 @@
+# MkDocs Material configuration — builds docs/ into a searchable static site.
+# Preview:  mkdocs serve     Build:  mkdocs build     Deploy:  mkdocs gh-deploy
+site_name: De Novo Myostatin Binder Design
+site_description: Reproducible RFdiffusion → ProteinMPNN → ESMFold pipeline targeting the myostatin knuckle epitope
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - tables
+
+nav:
+  - Home: index.md
+  - Background:
+      - Myostatin (GDF-8): background/myostatin.md
+      - TGF-β receptor logic: background/tgf-beta-receptors.md
+      - The knuckle epitope: background/epitope.md
+  - Methods:
+      - 1 · Target preparation: methods/01-target-prep.md
+      - 2 · Hotspot identification: methods/02-hotspots.md
+      - 3 · RFdiffusion: methods/03-rfdiffusion.md
+      - 4 · ProteinMPNN: methods/04-proteinmpnn.md
+      - 5 · ESMFold validation: methods/05-esmfold.md
+      - 6 · Ranking & selection: methods/06-ranking.md
+  - Reference:
+      - Glossary: reference/glossary.md
+      - Hardware & Docker plan: reference/hardware-and-docker.md

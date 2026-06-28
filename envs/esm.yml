@@ -1,0 +1,30 @@
+# =============================================================================
+# ESM validation environment  —  fold designs + score them
+# =============================================================================
+# We validate by REST API (https://api.esmatlas.com/foldSequence), so this env
+# does NOT install ESMFold/torch locally — the heavy folding happens server-side.
+# It only needs an HTTP client plus structure-parsing and analysis tools:
+#   - requests     : call the ESMFold API
+#   - biopython    : parse predicted PDBs, read pLDDT from the B-factor column
+#   - pandas/numpy : build and rank the scores table (results/scores.tsv)
+#   - tmalign      : superpose the ESMFold prediction onto the RFdiffusion
+#                    backbone and report RMSD / TM-score (the self-consistency
+#                    gate). bioconda CLI; call it from scripts or via subprocess.
+#
+# (Running ESMFold locally instead would need fair-esm + openfold + a GPU and is
+#  far heavier than the API; only worth it for large batches or offline use.)
+#
+# CREATE WITH:   mamba env create -f envs/esm.yml
+# -----------------------------------------------------------------------------
+name: esm
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11              # API client + analysis only; no 3.9 constraint here
+  - pip
+  - requests
+  - biopython
+  - pandas
+  - numpy
+  - tmalign                  # bioconda: structural superposition / RMSD

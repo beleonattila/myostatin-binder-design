@@ -1,0 +1,25 @@
+# Citation File Format (https://citation-file-format.github.io/)
+# GitHub renders this as a "Cite this repository" button and exports BibTeX/APA.
+cff-version: 1.2.0
+title: "De Novo Miniprotein Binder Design Against Myostatin (GDF-8)"
+message: "If you use this repository, please cite it as below."
+type: software
+authors:
+  - given-names: Attila
+    family-names: Beleon
+    email: beleonattila@gmail.com
+abstract: >-
+  A reproducible pipeline for designing de novo helical miniprotein binders
+  targeting the ActRIIB (type II receptor / knuckle) epitope of myostatin
+  (GDF-8), using RFdiffusion for backbone generation, ProteinMPNN for sequence
+  design, and ESMFold for in-silico self-consistency validation.
+keywords:
+  - protein design
+  - de novo design
+  - RFdiffusion
+  - ProteinMPNN
+  - ESMFold
+  - myostatin
+  - GDF-8
+  - miniprotein binder
+license: MIT

@@ -1,0 +1,48 @@
+# =============================================================================
+# RFDiffusion environment  —  Ada-GPU (RTX 4050, compute capability sm_89)
+# =============================================================================
+# DESIGN: build the ENTIRE GPU stack from conda-forge in ONE coherent solve.
+# conda-forge ships CUDA-11.8 builds of pytorch, dgl, AND e3nn, so the solver
+# picks mutually-compatible versions and manages every CUDA shared library in
+# $CONDA_PREFIX/lib with correct linkage. This avoids the trap that wrecked the
+# earlier pip-based attempts:
+#   * mixing a conda libtorch with a pip torch  -> "undefined symbol" at import
+#   * pip dgl wheel can't find libcusparse.so.11 / libcudart.so.11 on the path
+#   * an unpinned pip `torch` (via e3nn) silently upgrading off the cu118 build
+#
+# `cuda-version=11.8` pins the whole CUDA stack to 11.8 (Ada/sm_89 needs >=11.8;
+# upstream's cu11.1 fails on RTX 40-series). `pytorch=*=cuda*` forces the GPU
+# build (not the CPU one). Everything below is conda-managed; the only pip step
+# is the from-source RFdiffusion package itself, in scripts/setup_rfdiffusion.sh,
+# installed with --no-deps so it cannot perturb this solved stack.
+#
+# USAGE:
+#   mamba env create -f envs/rfdiffusion.yml
+#   mamba activate rfdiffusion
+#   scripts/setup_rfdiffusion.sh
+# -----------------------------------------------------------------------------
+name: rfdiffusion
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  # --- coherent CUDA-11.8 GPU stack (all conda-forge) ---
+  - cuda-version=11.8
+  - pytorch=*=cuda*        # GPU build of PyTorch on CUDA 11.8
+  - torchvision
+  - dgl                    # conda-forge ships a cuda118 build; solver matches it
+  - torchdata<0.8          # dgl 2.3's graphbolt imports torchdata.datapipes,
+                           #   which was REMOVED in torchdata>=0.8 -> pin to 0.7.x
+  - e3nn                   # solver picks a version compatible with the chosen torch
+  # --- scientific + RFdiffusion runtime deps (all conda-forge) ---
+  - numpy<2
+  - scipy
+  - pandas
+  - hydra-core
+  - omegaconf
+  - pyrsistent
+  - icecream
+  - opt_einsum
+  - decorator
+  - wget                   # used by setup_rfdiffusion.sh to fetch weights

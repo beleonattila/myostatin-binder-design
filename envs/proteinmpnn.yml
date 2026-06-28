@@ -1,0 +1,26 @@
+# =============================================================================
+# ProteinMPNN environment  —  sequence design for RFdiffusion backbones
+# =============================================================================
+# ProteinMPNN only needs PyTorch + NumPy. At our scale (45-60 residue binders)
+# CPU inference is seconds per backbone, so we use the CPU-only PyTorch wheel.
+#
+# WHY pip (not conda) for torch:
+#   `conda ... cpuonly` on conda-forge still resolved to a ~2 GB CUDA `libtorch`
+#   build here (and filled the disk). pip's dedicated CPU index gives a ~190 MB
+#   CPU wheel instead. So we install torch from pip's cpu index and keep conda
+#   to just the interpreter + numpy. (Disk on this machine is tight.)
+#
+# CREATE WITH:   mamba env create -f envs/proteinmpnn.yml
+# THEN:          git clone https://github.com/dauparas/ProteinMPNN.git
+#                (no build step — runs straight from the clone)
+# -----------------------------------------------------------------------------
+name: proteinmpnn
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - numpy<2
+  - pip:
+      - --index-url https://download.pytorch.org/whl/cpu
+      - torch

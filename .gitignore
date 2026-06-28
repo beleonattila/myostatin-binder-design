@@ -1,0 +1,49 @@
+# --- Large / regenerable scientific artifacts -------------------------------
+# Raw downloads and prepared structures are reproducible from the documented
+# fetch steps, so we don't bloat git history with them. Keep the dir via
+# .gitkeep but ignore contents (except a small curated sample if you add one).
+data/raw/*
+!data/raw/.gitkeep
+data/prepared/*
+!data/prepared/.gitkeep
+
+# Model weights (RFdiffusion ~1.5 GB+) — never commit; fetched by setup script.
+**/models/
+*.pt
+*.ckpt
+
+# Tool outputs — regenerable from scripts; commit only curated top designs.
+rfdiffusion/outputs/*
+!rfdiffusion/outputs/.gitkeep
+rfdiffusion/logs/*
+!rfdiffusion/logs/.gitkeep
+proteinmpnn/outputs/*
+!proteinmpnn/outputs/.gitkeep
+proteinmpnn/logs/*
+!proteinmpnn/logs/.gitkeep
+esm_validation/predicted_structures/*
+!esm_validation/predicted_structures/.gitkeep
+analysis/pymol_sessions/*
+!analysis/pymol_sessions/.gitkeep
+
+# Cloned third-party tools (installed via setup scripts, not vendored)
+RFdiffusion/
+ProteinMPNN/
+
+# --- MkDocs build ------------------------------------------------------------
+site/
+
+# --- Python / conda ----------------------------------------------------------
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+*.egg-info/
+
+# --- OS / editor / tooling ---------------------------------------------------
+.DS_Store
+*.swp
+# Obsidian vault config (this dir is also a vault)
+.obsidian/
+# Claude Code local settings
+.claude/
