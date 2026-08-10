@@ -9,6 +9,60 @@
 
 ---
 
+## Session Log — 2026-08-10 (Step 1 EXECUTED — target prepared)
+
+**Step 1 is done.** `scripts/01_prepare_target.py` (Biopython, `esm` env) is the
+reproducible recipe; PyMOL (`pymol-open-source`) was added to the `esm` env for
+the figures and for Step 2's superposition.
+
+**Artifacts produced:**
+
+| File | Contents |
+|---|---|
+| `data/raw/5JI1.pdb`, `.cif` | Raw RCSB deposition |
+| `data/prepared/myostatin_target.pdb` | **The RFdiffusion target** — chain A only, 729 ATOM records, 0 HETATM, no altlocs |
+| `data/prepared/myostatin_dimer.pdb` | Chains A+B, the physiological ligand (kept for reference/comparison) |
+| `analysis/step1_knuckle_face.png`, `step1_opposite_face.png` | Surface renders, hotspot patch in red, gap edges in blue |
+
+**Findings that change how later steps must be run:**
+
+1. **Numbering scheme resolved — and it needs no conversion.** `DBREF` says PDB
+   residues **1–109** map to UniProt **O08689 268–376**. So 5JI1 is numbered in
+   **mature-domain numbering with Asp1 = residue 1**, which is the same scheme
+   the provisional hotspot list already uses. Confirmed by sequence: positions
+   33/34/35 really are Ile/Ala/Pro and 84/85/86/87 really are Met/Leu/Tyr/Phe.
+   *Nothing needs renumbering before RFdiffusion.*
+2. **This is MOUSE GDF8 (O08689), not human.** Not a problem, and worth stating
+   proactively: mouse mature 268–376 is a **100 % exact match** to human
+   (O14793) 267–375 — verified by alignment, not assumed. Mature myostatin is
+   sequence-identical across mammals, so the mouse crystal is a valid stand-in.
+3. **There is a 14-residue disordered gap (51–64) in chain A** (chain B is worse:
+   49–65). It is **not** near the epitope: 33–46 Å from the hotspot centroid, at
+   the opposite end of the molecule (this is the α-helix / "heel" region, i.e.
+   the type I / wrist site — not our target). Left unmodelled deliberately: a
+   14-residue de novo loop would be invented geometry, and it is irrelevant here.
+   ⚠️ **Consequence for Step 3:** chain A is **two segments, 1–50 and 65–109**.
+   The RFdiffusion contig must express both, e.g. `A1-50/A65-109`, not `A1-109`.
+4. **Monomer chosen over dimer — and the choice is now evidence-based.** Per-residue
+   SASA was computed for the hotspots in the monomer and in the dimer: the values
+   are **identical**. Chain B buries ~603 Å² of chain A, none of it at the knuckle.
+   So the dimer costs +109 residues of VRAM (a real concern at 6 GB) and buys
+   nothing at the epitope. Chain A was picked over B because it has fewer
+   unresolved residues (14 vs 17).
+5. **The provisional hotspots hold up geometrically.** All 7 are resolved; the
+   patch spans only 12.6 Å (Cα–Cα max), and Ala34 and Leu85 — 51 residues apart in
+   sequence — are 5.0 Å apart in space. Two finger loops converging into one
+   compact convex surface is exactly the expected knuckle.
+   ⚠️ **Carry into Step 2:** **Met84 is only 7 % solvent-exposed** — too buried for
+   a binder to contact meaningfully. It is a likely drop from the final
+   `ppi.hotspot_res` list. The other six are 19–33 % exposed.
+
+**Still unverified:** the hotspot list is still *homology-provisional*. Step 2 must
+derive it from the actual 6MAC superposition rather than confirm it by eye — the
+consistency found above is encouraging, not proof.
+
+---
+
 ## Decision Update — 2026-07-07 (target & hotspot-source change)
 
 > ⚠️ **Supersedes the original Step 1/Step 2 structure choices below.** After
@@ -59,10 +113,10 @@ and check the knuckle finger loops are resolved in the apo structure.
 
 ## TODO — Next Session
 
-1. **Structure tooling check:** PyMOL is **not installed**. Step 1/2 need it (or Biopython, which is in the `esm` env). Decide: add `pymol-open-source` to a conda env, or do extraction in Biopython + superposition another way.
-2. **Step 1 — Target prep:** fetch **5JI1** (apo GDF8) → extract the GDF8 chain(s) → `data/prepared/myostatin_target.pdb`. Record the *resolved* residue range (watch for gaps near the epitope — apo GDF8 is flexible) and the numbering scheme 5JI1 uses. (Recipe: `docs/methods/01-target-prep.md`.) *(Target changed from 3HH2 → 5JI1 on 2026-07-07; see decision update below.)*
-3. **Step 2 — Hotspots:** superpose 5JI1 onto the GDF11 chain of **6MAC** (GDF11:ActRIIB:ALK5), list GDF8 residues within ~4.5 Å of ActRIIB, check GDF11→GDF8 conservation, finalize `hotspots/hotspot_residues.txt` (5–8 residues). (Recipe: `docs/methods/02-hotspots.md`.) *(Hotspot source changed from 1NYS → 6MAC on 2026-07-07.)*
-4. **Step 3 — First RFdiffusion run:** 20 designs; contig must match the *resolved* GDF8 chain range; use the verified hotspots. `mamba activate rfdiffusion`, run from the `RFdiffusion/` clone. Watch the 6 GB VRAM limit.
+1. ~~**Structure tooling check**~~ — **DONE 2026-08-10.** `pymol-open-source` installed into the `esm` env; Biopython used for the prep script itself.
+2. ~~**Step 1 — Target prep**~~ — **DONE 2026-08-10.** See the 2026-08-10 session log above for the numbering scheme, the 51–64 gap, and the monomer decision.
+3. **Step 2 — Hotspots:** superpose the prepared target onto the GDF11 chain of **6MAC** (GDF11:ActRIIB:ALK5), list GDF8 residues within ~4.5 Å of ActRIIB, check GDF11→GDF8 conservation, finalize `hotspots/hotspot_residues.txt` (5–8 residues). (Recipe: `docs/methods/02-hotspots.md`.) Carry in: the provisional list I33/A34/P35/M84/L85/Y86/F87 is geometrically plausible but **Met84 is only 7 % exposed** — expect to drop it. No renumbering is needed; 5JI1 is already in mature numbering.
+4. **Step 3 — First RFdiffusion run:** 20 designs; the contig must express **both resolved segments — `A1-50/A65-109`, not `A1-109`** (14-residue disordered gap at 51–64). Use the Step 2 hotspots. `mamba activate rfdiffusion`, run from the `RFdiffusion/` clone. Watch the 6 GB VRAM limit — the target is 95 resolved residues, so budget for target + 45–60 binder.
 
 **Quick start command next session:** `cd` into the project and run `make verify` to confirm all three envs are still healthy before doing anything.
 
@@ -635,7 +689,7 @@ That sentence is technically precise, tells the full pipeline story, and demonst
 - [x] Step 0: Assess local GPU — RTX 4050 6GB (local GPU OK, small binders 45–60 res). Now on **native Ubuntu** (WSL2 plan dropped); Miniforge installed.
 - [x] Infra: Repo restructured to scientific best-practices (README, LICENSE, CITATION.cff, Makefile, mkdocs, .gitignore, docs/ wiki, envs/, scripts/) — 2026-06-28.
 - [x] Infra: All three conda envs created + verified — 2026-06-28. **rfdiffusion GPU stack fully GREEN** (torch 2.3.1/dgl 2.3.0/e3nn 0.5.6, GPU matmul + dgl-graph-on-GPU + SE3Transformer import; RFdiffusion 1.1.0 + weights installed); proteinmpnn CPU; esm.
-- [~] Step 1: Target PDB chosen + prep recipe written (THEORY done: **target changed 3HH2 → 5JI1 apo GDF8** on 2026-07-07; extract GDF8 chain(s)). Execution (fetch/clean) pending.
+- [x] Step 1: **Target prepared — 2026-08-10.** 5JI1 fetched → chain A extracted, HETATM/waters/MPD stripped, altlocs collapsed → `data/prepared/myostatin_target.pdb` (729 atoms, 95 resolved residues in 2 segments: **1–50, 65–109**). Numbering = mature (Asp1 = 1), no conversion needed. Mouse GDF8, 100 % identical to human mature domain. Monomer chosen (dimer buries no epitope surface). Script: `scripts/01_prepare_target.py`.
 - [~] Step 2: Hotspot methodology + provisional knuckle list written (THEORY done: **homology transfer source changed 1NYS → 6MAC** GDF11:ActRIIB on 2026-07-07; provisional A33/34/35/85/86/87 to re-confirm). Superposition verification pending.
 - [x] Step 3: RFDiffusion env fully installed + GPU-verified (setup script run; RFdiffusion 1.1.0 + weights present). Ready to generate backbones.
 - [ ] Step 3: 20 backbone designs generated
