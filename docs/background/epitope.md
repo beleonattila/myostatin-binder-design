@@ -7,36 +7,36 @@ it and how we pin down the exact residues. The full method is in
 
 ## The core problem
 
-Our target structure, **3HH2**, contains *no receptor* (it is
-myostatin:follistatin). So we **cannot read the ActRIIB footprint off 3HH2
-directly**. Instead we transfer it by homology:
+No GDF8:ActRIIB structure exists, and our apo target **5JI1** has no receptor
+bound. So we **cannot read the ActRIIB footprint off the target directly**.
+Instead we transfer it by homology:
 
-1. Superpose one myostatin monomer onto **activin A** in the activin:ActRIIB
-   complex (**1NYS**).
+1. Superpose apo myostatin (5JI1) onto **GDF11** in the GDF11:ActRIIB:ALK5
+   complex (**6MAC**).
 2. Read off which myostatin residues fall under the ActRIIB footprint.
 
-This works because activin A and myostatin share the TGF-β fold and bind ActRIIB
-the same way; their finger sequences align well at the contact regions.
+This works because GDF11 is **~90 % identical to GDF8 in the mature domain** and
+binds the same type II receptor (ActRIIB) the same way — a far closer proxy than
+the activin A:ActRIIB complex (1NYS) we considered first.
 
 ## What contacts what
 
 On the **receptor** side, the ActRIIB aromatic triad **Tyr60 / Trp78 / Phe101**
-forms the hydrophobic core of the interface. On the **ligand** side (mapped from
-activin A's contacts), the residues that pack into that triad sit on the finger
-loops:
+forms the hydrophobic core of the interface (a fixed feature of ActRIIB,
+independent of which ligand it grips). On the **ligand** side, the residues that
+pack into that triad sit on the finger loops — the **finger 1–2 loop** and the
+**convex face of finger 3**. You read the exact GDF11 contact residues off 6MAC
+and map them onto GDF8 by the superposition; because the two are ~90 % identical
+here, most map one-to-one.
 
-- finger 1–2 loop — activin **Ile30 / Ala31 / Pro32**
-- finger 3 — activin **Pro88 / Leu92 / Tyr94**
-- finger 4 — activin **Ile100**
-
-The central, load-bearing contacts are **Ala31 / Pro32 / Leu92**. A general TGF-β
-rule of thumb (from BMP-2 alanine scanning) is that ~6 of ~24 interface residues
-dominate binding, often with one absolutely conserved Leu at the core.
+A general TGF-β rule of thumb (from BMP-2 alanine scanning) is that ~6 of ~24
+interface residues dominate binding, often with one absolutely conserved Leu at
+the core — so expect a handful of buried hydrophobics/aromatics to matter most.
 
 ## Provisional myostatin hotspots
 
-Aligning myostatin to activin A at the contact regions gives a *provisional*
-knuckle hotspot list (myostatin mature numbering, Asp1 = residue 1):
+Mapping the GDF11 knuckle contacts onto myostatin gives a *provisional* hotspot
+list (myostatin mature numbering; **confirm the scheme against 5JI1**):
 
 | Region | Residues |
 |---|---|
@@ -44,9 +44,10 @@ knuckle hotspot list (myostatin mature numbering, Asp1 = residue 1):
 | finger 3 convex face | Met84, Leu85, Tyr86, Phe87 |
 
 !!! warning "Confirm before use"
-    These are a **hypothesis**. They must be confirmed by the 1NYS superposition
-    on the actual extracted chain (numbering can shift on extraction), and any
-    residue that is disordered/missing in chain A must be dropped. RFdiffusion's
+    These are a **hypothesis**. They must be confirmed by the 6MAC superposition
+    on the actual extracted 5JI1 chain (numbering can shift on extraction), each
+    position checked for GDF11→GDF8 conservation, and any residue that is
+    disordered/missing in the apo structure dropped. RFdiffusion's
     `ppi.hotspot_res` wants only the **5–8 strongest** hydrophobic/aromatic
     positions, not the whole patch.
 

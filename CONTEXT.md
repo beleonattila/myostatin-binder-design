@@ -9,6 +9,30 @@
 
 ---
 
+## Decision Update — 2026-07-07 (target & hotspot-source change)
+
+> ⚠️ **Supersedes the original Step 1/Step 2 structure choices below.** After
+> importing the theory wiki (`wiki/`), the target and hotspot-source structures
+> were reconsidered and changed. The detailed 3HH2/1NYS prose later in this log is
+> kept for history but is **no longer the plan**.
+
+| Decision | Old choice | **New choice (2026-07-07)** | Why changed |
+|---|---|---|---|
+| RFdiffusion target | 3HH2 (myostatin:follistatin) | **5JI1 (apo GDF8)** | Apo → epitope exposed in its unbound conformation; 2017/2.25 Å with modern OneDep validation, vs 3HH2's occluded epitope and poor 2009-era geometry (clashscore ~44, ~14 % sidechain outliers). |
+| Hotspot source | 1NYS (activin A:ActRIIB) | **6MAC (GDF11:ActRIIB:ALK5)** | GDF11 is ~90 % identical to GDF8 in the mature domain and uses the same type II receptor — a far closer homology transfer than activin. Corroborate with 7MRZ. |
+
+**Cost of the change:** none sunk — Steps 1 and 2 had not been executed (no target
+PDB extracted, no hotspot list committed). This is a plan change, not a rework.
+Full rationale and per-structure detail: `wiki/molecules/5JI1.md`,
+`wiki/molecules/6MAC.md`, `wiki/molecules/3HH2.md`. Runnable recipes updated in
+`docs/methods/01-target-prep.md` and `docs/methods/02-hotspots.md`.
+
+**Carry-over caveat:** confirm the numbering scheme 5JI1 uses before writing
+hotspots (the deposited mature-domain fragment does not necessarily start at 1),
+and check the knuckle finger loops are resolved in the apo structure.
+
+---
+
 ## Session Log — 2026-06-28 (infrastructure build)
 
 **What we accomplished this session (all infrastructure, no science steps run yet):**
@@ -36,9 +60,9 @@
 ## TODO — Next Session
 
 1. **Structure tooling check:** PyMOL is **not installed**. Step 1/2 need it (or Biopython, which is in the `esm` env). Decide: add `pymol-open-source` to a conda env, or do extraction in Biopython + superposition another way.
-2. **Step 1 — Target prep:** fetch **3HH2** → extract myostatin **chain A** → `data/prepared/myostatin_target.pdb`. Record the *resolved* residue range (watch for gaps); confirm numbering starts at Asp1 = 1. (Recipe: `docs/methods/01-target-prep.md`.)
-3. **Step 2 — Hotspots:** superpose 3HH2 chain A onto activin A in **1NYS**, list myostatin residues within 5 Å of ActRIIB, finalize `hotspots/hotspot_residues.txt` (5–8 residues). (Recipe: `docs/methods/02-hotspots.md`.)
-4. **Step 3 — First RFdiffusion run:** 20 designs; contig must match the *resolved* chain-A range; use the verified hotspots. `mamba activate rfdiffusion`, run from the `RFdiffusion/` clone. Watch the 6 GB VRAM limit.
+2. **Step 1 — Target prep:** fetch **5JI1** (apo GDF8) → extract the GDF8 chain(s) → `data/prepared/myostatin_target.pdb`. Record the *resolved* residue range (watch for gaps near the epitope — apo GDF8 is flexible) and the numbering scheme 5JI1 uses. (Recipe: `docs/methods/01-target-prep.md`.) *(Target changed from 3HH2 → 5JI1 on 2026-07-07; see decision update below.)*
+3. **Step 2 — Hotspots:** superpose 5JI1 onto the GDF11 chain of **6MAC** (GDF11:ActRIIB:ALK5), list GDF8 residues within ~4.5 Å of ActRIIB, check GDF11→GDF8 conservation, finalize `hotspots/hotspot_residues.txt` (5–8 residues). (Recipe: `docs/methods/02-hotspots.md`.) *(Hotspot source changed from 1NYS → 6MAC on 2026-07-07.)*
+4. **Step 3 — First RFdiffusion run:** 20 designs; contig must match the *resolved* GDF8 chain range; use the verified hotspots. `mamba activate rfdiffusion`, run from the `RFdiffusion/` clone. Watch the 6 GB VRAM limit.
 
 **Quick start command next session:** `cd` into the project and run `make verify` to confirm all three envs are still healthy before doing anything.
 
@@ -230,6 +254,12 @@ Create this layout before running anything:
 
 ## Step 1 — Target Preparation
 
+> 🛑 **SUPERSEDED (2026-07-07).** The target is now **5JI1 (apo GDF8)** and the
+> hotspot source is now **6MAC (GDF11:ActRIIB)** — see "Decision Update —
+> 2026-07-07" near the top of this file and the recipes in `docs/methods/`. The
+> 3HH2/1NYS analysis below is retained as history (the 3HH2 chain-assignment
+> correction remains a useful record) but is **no longer the plan to execute**.
+
 ### Which structure to use — VERIFIED FACTS (checked against RCSB + primary literature, 2026-06-25)
 
 **Primary target structure: PDB 3HH2.** This is the crystal structure of **myostatin (GDF-8) bound to follistatin-288** (Cash et al., *EMBO J* 2009; 2.15 Å). Important verified details:
@@ -397,7 +427,7 @@ python scripts/run_inference.py \
   denoising_steps=50
 ```
 
-> **Note:** the contig `A1-109` must match the *actual resolved* residue range of the extracted myostatin chain A (adjust if there are missing termini/loops). The hotspot list above is the **verified** knuckle set from Step 2 — replace these placeholders with whatever your 1NYS superposition confirmed. Binder length is set to **45–60** to respect the 6 GB VRAM budget from Step 0.
+> **Note:** the contig must match the *actual resolved* residue range and numbering of the extracted **5JI1** GDF8 chain (adjust for missing termini/loops; do not assume `A1-109`). The hotspot list above is the **verified** knuckle set from Step 2 — replace these placeholders with whatever your **6MAC** superposition confirmed. Binder length is set to **45–60** to respect the 6 GB VRAM budget from Step 0.
 
 **Breaking down the key parameters:**
 
@@ -571,7 +601,7 @@ Take the top 3–5 sequences. Open them in PyMOL alongside the myostatin target.
 
 After completing this pipeline, you can credibly state:
 
-> *"I ran RFDiffusion binder hallucination against the ActRIIB-binding epitope of myostatin, using hotspot residues identified from the crystal structure of the GDF-11/ActRIIB complex (PDB: 3HH2). I designed sequences for the resulting backbones using ProteinMPNN and validated self-consistency by refolding with ESMFold, filtering for pTM > 0.7 and RMSD < 2Å to the design backbone."*
+> *"I ran RFdiffusion binder hallucination against the ActRIIB-binding epitope of apo myostatin (PDB 5JI1), using hotspot residues transferred by homology from the GDF11:ActRIIB complex (PDB 6MAC; GDF11 is ~90 % identical to GDF8 in the mature domain). I designed sequences for the resulting backbones with ProteinMPNN and validated self-consistency by refolding with ESMFold, filtering for pTM > 0.7 and RMSD < 2 Å to the design backbone."*
 
 That sentence is technically precise, tells the full pipeline story, and demonstrates you understand what each tool contributes.
 
@@ -605,8 +635,8 @@ That sentence is technically precise, tells the full pipeline story, and demonst
 - [x] Step 0: Assess local GPU — RTX 4050 6GB (local GPU OK, small binders 45–60 res). Now on **native Ubuntu** (WSL2 plan dropped); Miniforge installed.
 - [x] Infra: Repo restructured to scientific best-practices (README, LICENSE, CITATION.cff, Makefile, mkdocs, .gitignore, docs/ wiki, envs/, scripts/) — 2026-06-28.
 - [x] Infra: All three conda envs created + verified — 2026-06-28. **rfdiffusion GPU stack fully GREEN** (torch 2.3.1/dgl 2.3.0/e3nn 0.5.6, GPU matmul + dgl-graph-on-GPU + SE3Transformer import; RFdiffusion 1.1.0 + weights installed); proteinmpnn CPU; esm.
-- [~] Step 1: Target PDB chosen + prep recipe written (THEORY done: 3HH2 = myostatin A/B + follistatin C/D; extract chain A). Execution (fetch/clean) pending.
-- [~] Step 2: Hotspot methodology + provisional knuckle list written (THEORY done: homology transfer from 1NYS; provisional A33/34/35/85/86/87). Superposition verification pending.
+- [~] Step 1: Target PDB chosen + prep recipe written (THEORY done: **target changed 3HH2 → 5JI1 apo GDF8** on 2026-07-07; extract GDF8 chain(s)). Execution (fetch/clean) pending.
+- [~] Step 2: Hotspot methodology + provisional knuckle list written (THEORY done: **homology transfer source changed 1NYS → 6MAC** GDF11:ActRIIB on 2026-07-07; provisional A33/34/35/85/86/87 to re-confirm). Superposition verification pending.
 - [x] Step 3: RFDiffusion env fully installed + GPU-verified (setup script run; RFdiffusion 1.1.0 + weights present). Ready to generate backbones.
 - [ ] Step 3: 20 backbone designs generated
 - [ ] Step 3: Visual inspection in PyMOL, top designs selected

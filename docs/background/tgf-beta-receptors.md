@@ -32,9 +32,12 @@ functional **ActRIIB mimic / antagonist**.
 ActRIIB is a type II receptor with a small (~100-residue) ectodomain in a
 **three-finger-toxin fold**. It grips the ligand knuckle with an **aromatic triad
 — Tyr60 / Trp78 / Phe101 —** burying ~720 Å² of mostly hydrophobic surface, plus
-a handful of peripheral hydrogen bonds and salt bridges. Those numbers come from
-the activin A:ActRIIB structure (PDB 1NYS), which is why we use it as the
-homology template for defining hotspots.
+a handful of peripheral hydrogen bonds and salt bridges. The aromatic triad is a
+fixed feature of ActRIIB; the ~720 Å² figure was first measured in the activin
+A:ActRIIB structure (1NYS). For defining *myostatin* hotspots we use the closer
+**GDF11:ActRIIB complex (PDB 6MAC)** as the homology template — GDF11 is ~90 %
+identical to GDF8, so its ActRIIB footprint transfers with more confidence than
+activin's (see [hotspot identification](../methods/02-hotspots.md)).
 
 ## Why this matters for de novo design
 

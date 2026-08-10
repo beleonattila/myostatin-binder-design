@@ -30,8 +30,8 @@ structural rationale, and [`CONTEXT.md`](CONTEXT.md) for the design decision log
 
 | Step | Tool | Input → Output | Environment |
 |---|---|---|---|
-| 1 · Target prep | PyMOL / Biopython | PDB **3HH2** → clean myostatin chain A | (none / `esm`) |
-| 2 · Hotspots | PyMOL | 1NYS superposition → knuckle residue list | (none) |
+| 1 · Target prep | PyMOL / Biopython | PDB **5JI1** (apo GDF8) → clean myostatin target | (none / `esm`) |
+| 2 · Hotspots | PyMOL | **6MAC** (GDF11:ActRIIB) superposition → knuckle residue list | (none) |
 | 3 · Backbones | **RFdiffusion** | target + hotspots → backbone PDBs | `rfdiffusion` |
 | 4 · Sequences | **ProteinMPNN** | backbone → FASTA sequences | `proteinmpnn` |
 | 5 · Validation | **ESMFold** (API) | sequence → predicted structure + pLDDT/pTM | `esm` |
@@ -110,6 +110,25 @@ mkdocs serve                  # live preview at http://127.0.0.1:8000
 - `docs/background/` — the biology: myostatin, TGF-β receptor logic, the epitope
 - `docs/methods/` — step-by-step, runnable method notes (steps 1–6)
 - `docs/reference/` — glossary, hardware notes, the Docker plan
+
+---
+
+## Learning path (syllabus & theory wiki)
+
+Where `docs/` is the *runnable* reference, [`SYLLABUS.md`](SYLLABUS.md) and
+[`wiki/`](wiki/index.md) are the *learning* layer for building defensible
+competence in RFdiffusion + ProteinMPNN — read them alongside the method notes.
+
+- [`SYLLABUS.md`](SYLLABUS.md) — a 0–7 module curriculum. Each module pairs an
+  action with the theory to hold first and the one-sentence claim you should be
+  able to defend afterwards.
+- [`wiki/`](wiki/index.md) — a cross-linked, graduate-level theory knowledge base
+  (also browsable as an Obsidian vault):
+  - `wiki/molecules/` — GDF8, GDF11, follistatin-288, ActRIIB, and the key PDB
+    structures (3HH2, 5JI1, 6MAC)
+  - `wiki/methods/` — RFdiffusion, ProteinMPNN, ESMFold, AlphaFold2, PyMOL, TMalign
+  - `wiki/concepts/` — TGF-β superfamily, PPI hotspots, diffusion models, inverse
+    folding, the end-to-end pipeline, and validation metrics
 
 ---
 

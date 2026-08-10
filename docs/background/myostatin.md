@@ -49,9 +49,11 @@ so the dimer can engage two type II receptors.
 
 | PDB | Contents | Role here |
 |---|---|---|
-| **3HH2** | Myostatin dimer (chains A, B) + follistatin-288 (C, D), 2.15 Å | Step 1 target — we extract one myostatin monomer (chain A). |
-| **1NYS** | ActRIIB ectodomain : activin A complex | Step 2 template — defines the ActRIIB footprint we transfer onto myostatin. |
+| **5JI1** | Apo GDF8 (mature growth-factor domain), 2.25 Å | Step 1 target — apo myostatin with the knuckle epitope exposed. |
+| **6MAC** | GDF11 + ActRIIB (type II) + ALK5 (type I) ternary complex | Step 2 template — GDF11 (~90 % identical to GDF8) defines the ActRIIB footprint we transfer onto myostatin. |
 
-Note 3HH2 contains **no receptor** — follistatin is an antagonist, not a
-receptor — which is exactly why we need 1NYS to locate the receptor epitope.
+Note 5JI1 contains **no receptor** (it is apo), which is exactly why we need
+**6MAC** — a real ActRIIB complex of the close homolog GDF11 — to locate the
+receptor epitope. (The older 3HH2 myostatin:follistatin structure is a fold
+reference only; follistatin occludes the epitope and its geometry is unreliable.)
 Continue to [TGF-β receptor logic](tgf-beta-receptors.md).

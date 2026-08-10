@@ -34,6 +34,7 @@ visually confirm the interface contacts the knuckle hotspots. Save winners to
 
 > *"I ran RFdiffusion binder design against the ActRIIB (type II / knuckle)
 > epitope of myostatin — hotspots defined by homology transfer from the
-> ActRIIB:activin A complex (1NYS) onto the myostatin crystal structure (3HH2) —
+> GDF11:ActRIIB complex (6MAC, GDF11 being ~90 % identical to GDF8) onto apo
+> myostatin (5JI1) —
 > designed sequences with ProteinMPNN, and validated self-consistency by
 > refolding with ESMFold, filtering for pTM > 0.7 and RMSD < 2 Å."*

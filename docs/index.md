@@ -22,8 +22,9 @@ biology and bioinformatics and focuses on *why* each step is done the way it is.
 
 Myostatin signals through the type II receptor **ActRIIB**, which binds the
 convex, hydrophobic **knuckle** on a single ligand monomer's β-fingers.
-We extract one myostatin monomer from PDB **3HH2**, define the knuckle hotspots
-by homology transfer from the ActRIIB:activin complex (PDB **1NYS**), generate
+We take apo myostatin from PDB **5JI1**, define the knuckle hotspots by homology
+transfer from the GDF11:ActRIIB complex (PDB **6MAC**, GDF11 being ~90 % identical
+to GDF8), generate
 binder backbones docked onto those hotspots with **RFdiffusion**, design
 sequences for them with **ProteinMPNN**, and validate each sequence by refolding
 it with **ESMFold** and checking it returns to the intended shape. Designs that
