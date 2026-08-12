@@ -78,7 +78,7 @@ Keep 5–10 good backbones for sequence design.
 - **Local (WSL2 + CUDA):** conda env, PyTorch matched to your CUDA, `pip install -e .`, SE3/`dgl`/`e3nn` deps, download model weights (~1.5 GB).
 - **No local GPU:** use the Baker/Sokrypton ColabDesign RFdiffusion notebook; upload your target PDB, run the binder section, download backbones, continue the rest of the pipeline locally.
 
-See [SYLLABUS Module 4](../../SYLLABUS.md) and `CONTEXT.md` for the exact commands.
+See [Step 3 · RFdiffusion](../methods/03-rfdiffusion.md) for the runnable recipe, and `SYLLABUS.md` Module 4 / `CONTEXT.md` at the repo root for the exact commands and their rationale.
 
 ---
 
