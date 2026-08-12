@@ -15,8 +15,8 @@ RUN        := conda run --no-capture-output -n              # run a command insi
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-        envs envs-rfdiffusion envs-proteinmpnn envs-esm setup-rfdiffusion \
-        gpu-check verify verify-rfdiffusion verify-proteinmpnn verify-esm \
+        envs envs-rfdiffusion envs-proteinmpnn envs-esm envs-docs setup-rfdiffusion \
+        gpu-check verify verify-rfdiffusion verify-proteinmpnn verify-esm verify-docs \
         docs docs-build clean-docs
 
 help:  ## Show this help (the list of targets)
@@ -24,7 +24,7 @@ help:  ## Show this help (the list of targets)
 		| awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
 # --- Environments ------------------------------------------------------------
-envs: envs-rfdiffusion envs-proteinmpnn envs-esm  ## Create all three conda envs
+envs: envs-rfdiffusion envs-proteinmpnn envs-esm envs-docs  ## Create all four conda envs
 
 envs-rfdiffusion:  ## Create the rfdiffusion env (then run `make setup-rfdiffusion`)
 	$(ACTIVATE) && mamba env create -f envs/rfdiffusion.yml
@@ -35,11 +35,14 @@ envs-proteinmpnn:  ## Create the proteinmpnn env (CPU torch)
 envs-esm:  ## Create the esm validation env
 	$(ACTIVATE) && mamba env create -f envs/esm.yml
 
+envs-docs:  ## Create the docs env (MkDocs Material; needed by `make docs`)
+	$(ACTIVATE) && mamba env create -f envs/docs.yml
+
 setup-rfdiffusion:  ## Install RFdiffusion (--no-deps) + model weights (env must exist)
 	$(ACTIVATE) && $(RUN) rfdiffusion bash scripts/setup_rfdiffusion.sh
 
 # --- Verification ------------------------------------------------------------
-verify: verify-rfdiffusion verify-proteinmpnn verify-esm  ## Check all three envs
+verify: verify-rfdiffusion verify-proteinmpnn verify-esm verify-docs  ## Check all four envs
 
 gpu-check:  ## Quick: does PyTorch see the GPU in the rfdiffusion env?
 	$(ACTIVATE) && $(RUN) rfdiffusion python -c "import torch; print('CUDA available:', torch.cuda.is_available(), '|', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no GPU')"
@@ -57,12 +60,16 @@ verify-esm:  ## Check the esm env (client libs + TMalign)
 	$(ACTIVATE) && $(RUN) esm python -c "import requests,Bio,pandas,numpy; print('esm OK | biopython',Bio.__version__)"
 	@$(ACTIVATE) && $(RUN) esm which TMalign >/dev/null && echo "esm OK | TMalign present" || echo "esm WARN | TMalign missing"
 
-# --- Docs --------------------------------------------------------------------
-docs:  ## Serve the documentation site locally (needs: pip install mkdocs-material)
-	mkdocs serve
+verify-docs:  ## Check the docs env and that the site builds clean
+	$(ACTIVATE) && $(RUN) docs mkdocs --version
+	$(ACTIVATE) && $(RUN) docs mkdocs build --strict --site-dir /tmp/mkdocs-verify && rm -rf /tmp/mkdocs-verify && echo "docs OK | strict build passes"
 
-docs-build:  ## Build the static documentation site into ./site
-	mkdocs build
+# --- Docs --------------------------------------------------------------------
+docs:  ## Serve the documentation site locally at http://127.0.0.1:8000
+	$(ACTIVATE) && $(RUN) docs mkdocs serve
+
+docs-build:  ## Build the static documentation site into ./site (strict: fails on bad links)
+	$(ACTIVATE) && $(RUN) docs mkdocs build --strict
 
 clean-docs:  ## Remove the built docs site
 	rm -rf site/

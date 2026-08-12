@@ -1,0 +1,32 @@
+# =============================================================================
+# Documentation environment  —  build and serve the MkDocs site
+# =============================================================================
+# Everything under docs/ (concepts, molecules, tools, methods, reference) is
+# rendered by MkDocs Material into a searchable static site. This env exists
+# only for that; it shares nothing with the three scientific envs and has no
+# GPU, torch, or structural-biology dependencies.
+#
+#   - mkdocs-material : the theme; pulls in mkdocs itself, pymdown-extensions,
+#                       and the search plugin used by mkdocs.yml
+#
+# VERSION PINS — deliberate, not incidental:
+#   mkdocs <2   The Material team have warned that upstream MkDocs 2.0 removes
+#               the plugin system and rewrites theming, with no migration path
+#               and no compatible Material release. Until that settles, staying
+#               on the 1.x line is what keeps `mkdocs build --strict` working.
+#               See https://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/
+#   python      Unconstrained by the science stack (this env is standalone), so
+#               it just tracks a current, well-supported release.
+#
+# CREATE WITH:   mamba env create -f envs/docs.yml
+#      OR:       make envs-docs
+# THEN:          make docs         # serve at http://127.0.0.1:8000
+#                make docs-build   # render into ./site
+# -----------------------------------------------------------------------------
+name: docs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - mkdocs-material>=9.5,<10   # theme + mkdocs + pymdown-extensions + search
+  - mkdocs<2                   # pin the 1.x line; see note above

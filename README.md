@@ -80,6 +80,7 @@ everything for that block.
 | `envs/rfdiffusion.yml` | `rfdiffusion` | The whole GPU stack (PyTorch + dgl + e3nn) is solved as **one coherent conda-forge install on CUDA 11.8** — verified: torch 2.3.1, dgl 2.3.0, e3nn 0.5.6. `scripts/setup_rfdiffusion.sh` then adds RFdiffusion itself (`--no-deps`) + weights. **CUDA 11.8** is required for Ada GPUs (sm_89) — the upstream cu11.1 pin fails on RTX 40-series. |
 | `envs/proteinmpnn.yml` | `proteinmpnn` | CPU-only PyTorch (pip wheel, ~190 MB) — sufficient at 45–60 residues and far smaller than the CUDA build. |
 | `envs/esm.yml` | `esm` | API client + analysis only (requests, biopython, pandas, TMalign). ESMFold folding runs server-side via REST, so no local GPU/torch. |
+| `envs/docs.yml` | `docs` | MkDocs Material only — no coupling to the science stack. Pins `mkdocs<2`, since upstream MkDocs 2.0 drops the plugin system with no migration path. |
 
 > **Hard-won lesson encoded in these files:** in a CUDA stack, never let `pip`
 > resolve an unpinned `torch` — a package like `e3nn` will silently upgrade
@@ -108,8 +109,9 @@ It is also browsable directly on GitHub, or as an Obsidian vault pointed at
 `docs/`.
 
 ```bash
-pip install mkdocs-material   # one-time
-mkdocs serve                  # live preview at http://127.0.0.1:8000
+make envs-docs    # one-time: create the `docs` conda env from envs/docs.yml
+make docs         # live preview at http://127.0.0.1:8000
+make docs-build   # render into ./site (strict — fails on broken links)
 ```
 
 - `docs/concepts/` — the theory: TGF-β superfamily and receptor logic, the
