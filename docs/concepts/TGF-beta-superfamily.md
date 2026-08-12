@@ -34,6 +34,8 @@ The heterotetrameric signalling complex places receptors at two distinct ligand 
 
 **Type II binds first** (higher intrinsic affinity), then recruits **type I** into the concave wrist site; the type II kinase trans-phosphorylates the type I kinase to fire the signal.
 
+This page describes the epitopes as **surfaces on the ligand**. For the receptors that occupy them and the SMAD cascade downstream, see [TGF-β receptor logic](tgf-beta-receptors.md); for the residue-level view of the knuckle on myostatin specifically, see [the knuckle epitope](epitope.md).
+
 For your project:
 - You target the **knuckle / type II** site to block ActRIIB.
 - The knuckle is the **more conserved** epitope between GDF8 and GDF11, which is what makes the [6MAC](../molecules/6MAC.md) hotspot transfer defensible.

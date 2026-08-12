@@ -100,7 +100,7 @@ Note that corollary 1 is bounded by the [selectivity caveat](#selectivity-caveat
 
 ## The part of ActRIIB you actually care about
 
-Only the **extracellular domain (ECD)** matters for the interface. It is a small (~100-residue) three-finger toxin-fold module. In the ternary complexes ([6MAC](6MAC.md), 7MRZ) it docks onto the convex knuckle of the ligand fingertips. The residues of the ligand that the ActRIIB ECD contacts are precisely the **hotspots** you extract and hand to [RFdiffusion](../methods/RFdiffusion.md).
+Only the **extracellular domain (ECD)** matters for the interface. It is a small (~100-residue) three-finger toxin-fold module. In the ternary complexes ([6MAC](6MAC.md), 7MRZ) it docks onto the convex knuckle of the ligand fingertips. The residues of the ligand that the ActRIIB ECD contacts are precisely the **hotspots** you extract and hand to [RFdiffusion](../tools/RFdiffusion.md).
 
 The kinase domain (intracellular) has its own crystal structures (e.g. with adenine, at 2.0 Å) but is irrelevant to your extracellular design problem — don't get pulled into it.
 
@@ -131,4 +131,4 @@ Because ActRIIB binds activins and GDF11 as well as GDF8, and because you are de
 - The proxy complex that shows the interface: [6MAC](6MAC.md) via [GDF11](GDF11.md)
 - The fold and its two epitopes: [TGF-β superfamily](../concepts/TGF-beta-superfamily.md)
 - Interface theory: [PPI hotspots](../concepts/PPI-hotspots.md)
-- What consumes the hotspots: [RFdiffusion](../methods/RFdiffusion.md)
+- What consumes the hotspots: [RFdiffusion](../tools/RFdiffusion.md)

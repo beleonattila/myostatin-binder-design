@@ -5,6 +5,10 @@ kinase receptors**. Getting the geometry of these two sites straight is the sing
 most important conceptual step in this project — target the wrong face and every
 downstream design is wasted.
 
+This page covers the **receptors and the cascade**. For the ligand-side anatomy
+those receptors bind — the cystine-knot fold, and where the fingers, wrist and
+heel are — read [TGF-β superfamily](TGF-beta-superfamily.md) first.
+
 ## Two receptor types, two sites
 
 | | **Type I** (e.g. Alk4/Alk5/Alk7) | **Type II** (e.g. ActRIIB, ActRIIA, BMPRII) |
@@ -24,8 +28,20 @@ downstream design is wasted.
 
 Because the type II receptor sits *upstream* and its recruitment is the first
 committed step, a binder that occupies the **knuckle** competitively blocks
-ActRIIB engagement and shuts the cascade down. That is what makes our binder a
-functional **ActRIIB mimic / antagonist**.
+ActRIIB engagement and shuts the cascade down. That makes our binder a functional
+**ActRIIB antagonist** — but note the mechanism precisely: it works by occupying
+the receptor's *footprint on the ligand*, **not** by mimicking the receptor. We
+are not reproducing the ActRIIB surface; we are covering the patch it needs.
+
+Two further consequences worth holding:
+
+- The type II kinase is **constitutively active**, so the regulated step is
+  proximity, not enzyme activation. Preventing the complex from assembling is
+  therefore sufficient — no kinase inhibition is needed.
+- Myostatin can also use **ActRIIA** at lower affinity, so blocking one receptor
+  leaves an escape route. Both type II receptors dock the *same* knuckle, so
+  occluding it on the ligand closes both routes at once. See
+  [ActRIIB](../molecules/ActRIIB.md) for the full ligand-vs-receptor argument.
 
 ## ActRIIB specifically
 

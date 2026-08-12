@@ -58,5 +58,5 @@ Start at 4.5 Å. Too tight a cutoff misses real contributors; too loose adds noi
 - Where hotspots come from: [6MAC](../molecules/6MAC.md), [GDF11](../molecules/GDF11.md)
 - Where they map to: [GDF8](../molecules/GDF8.md) / [5JI1](../molecules/5JI1.md)
 - The receptor defining them: [ActRIIB](../molecules/ActRIIB.md)
-- Where they're used: [RFdiffusion](../methods/RFdiffusion.md)
-- Tool: [PyMOL](../methods/PyMOL.md)
+- Where they're used: [RFdiffusion](../tools/RFdiffusion.md)
+- Tool: [PyMOL](../tools/PyMOL.md)

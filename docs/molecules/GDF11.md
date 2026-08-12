@@ -21,7 +21,7 @@ That lets you do the following transfer:
 1. Take the GDF11:ActRIIB interface from 6MAC.
 2. Identify GDF11 residues contacting ActRIIB.
 3. Map to the equivalent GDF8 positions (near-identical, so mostly a 1:1 mapping).
-4. Use those GDF8 positions as hotspots for [RFdiffusion](../methods/RFdiffusion.md).
+4. Use those GDF8 positions as hotspots for [RFdiffusion](../tools/RFdiffusion.md).
 
 ---
 

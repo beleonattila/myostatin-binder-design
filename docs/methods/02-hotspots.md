@@ -6,7 +6,7 @@ knuckle residues it must contact.
 **Environment:** PyMOL (no GPU).
 
 This is the most scientifically critical step. See
-[the epitope](../background/epitope.md) for the biology; this page is the method.
+[the epitope](../concepts/epitope.md) for the biology; this page is the method.
 
 ## Why homology transfer
 

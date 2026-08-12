@@ -1,6 +1,6 @@
 # Diffusion Models (for proteins)
 
-The generative-modelling theory behind [RFdiffusion](../methods/RFdiffusion.md). You don't need to re-derive DDPMs, but you should be able to explain, correctly, why "denoising" produces new proteins.
+The generative-modelling theory behind [RFdiffusion](../tools/RFdiffusion.md). You don't need to re-derive DDPMs, but you should be able to explain, correctly, why "denoising" produces new proteins.
 
 ---
 
@@ -69,6 +69,6 @@ Image diffusion models (Stable Diffusion, etc.) start from noise and denoise int
 
 ## Links
 
-- The tool: [RFdiffusion](../methods/RFdiffusion.md)
+- The tool: [RFdiffusion](../tools/RFdiffusion.md)
 - What steers it: [PPI hotspots](PPI-hotspots.md)
 - Pipeline role: [de novo binder design](de-novo-binder-design.md)

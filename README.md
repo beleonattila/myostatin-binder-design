@@ -19,10 +19,13 @@ onto the **convex "knuckle" surface of one ligand monomer's β-fingers** — a
 compact, hydrophobic-dominated epitope. Blocking that interaction is a validated
 therapeutic strategy for muscle-wasting and metabolic disease.
 
-A successful de novo binder here is, in effect, a **synthetic ActRIIB mimic**:
-a small (45–60 residue) protein engineered to sit on the knuckle and compete
-with the receptor. See [`docs/background/`](docs/background/) for the full
-structural rationale, and [`CONTEXT.md`](CONTEXT.md) for the design decision log.
+A successful de novo binder here is, in effect, a **synthetic ActRIIB
+antagonist**: a small (45–60 residue) protein engineered to sit on the knuckle
+and out-compete the receptor for it. Note the mechanism precisely — it works by
+covering ActRIIB's footprint *on the ligand*, not by reproducing the receptor's
+own binding surface. See [`docs/concepts/`](docs/concepts/tgf-beta-receptors.md)
+for the full structural rationale, and [`CONTEXT.md`](CONTEXT.md) for the design
+decision log.
 
 ---
 
@@ -97,38 +100,37 @@ learning the design tools. See [`docs/reference/`](docs/reference/) for the plan
 
 ---
 
-## Documentation (the "wiki")
+## Documentation
 
-Rendered docs live in [`docs/`](docs/) and build into a searchable site with
-MkDocs Material:
+All documentation — theory and runnable protocol alike — lives in
+[`docs/`](docs/index.md) and builds into a searchable site with MkDocs Material.
+It is also browsable directly on GitHub, or as an Obsidian vault pointed at
+`docs/`.
 
 ```bash
 pip install mkdocs-material   # one-time
 mkdocs serve                  # live preview at http://127.0.0.1:8000
 ```
 
-- `docs/background/` — the biology: myostatin, TGF-β receptor logic, the epitope
+- `docs/concepts/` — the theory: TGF-β superfamily and receptor logic, the
+  knuckle epitope, PPI hotspots, diffusion models, inverse folding, the
+  end-to-end pipeline, validation metrics
+- `docs/molecules/` — the cast: GDF8, GDF11, ActRIIB, follistatin-288, and the
+  key PDB structures (5JI1, 6MAC, 3HH2)
+- `docs/tools/` — what each program does: RFdiffusion, ProteinMPNN, ESMFold,
+  AlphaFold2, PyMOL, TMalign
 - `docs/methods/` — step-by-step, runnable method notes (steps 1–6)
 - `docs/reference/` — glossary, hardware notes, the Docker plan
 
 ---
 
-## Learning path (syllabus & theory wiki)
+## Learning path
 
-Where `docs/` is the *runnable* reference, [`SYLLABUS.md`](SYLLABUS.md) and
-[`wiki/`](wiki/index.md) are the *learning* layer for building defensible
-competence in RFdiffusion + ProteinMPNN — read them alongside the method notes.
-
-- [`SYLLABUS.md`](SYLLABUS.md) — a 0–7 module curriculum. Each module pairs an
-  action with the theory to hold first and the one-sentence claim you should be
-  able to defend afterwards.
-- [`wiki/`](wiki/index.md) — a cross-linked, graduate-level theory knowledge base
-  (also browsable as an Obsidian vault):
-  - `wiki/molecules/` — GDF8, GDF11, follistatin-288, ActRIIB, and the key PDB
-    structures (3HH2, 5JI1, 6MAC)
-  - `wiki/methods/` — RFdiffusion, ProteinMPNN, ESMFold, AlphaFold2, PyMOL, TMalign
-  - `wiki/concepts/` — TGF-β superfamily, PPI hotspots, diffusion models, inverse
-    folding, the end-to-end pipeline, and validation metrics
+Where `docs/` is organised for **random access**, [`SYLLABUS.md`](SYLLABUS.md)
+imposes an **order** on it: a 0–7 module curriculum for building defensible
+competence in RFdiffusion + ProteinMPNN. Each module pairs an action with the
+theory to hold first, links to the relevant `docs/` pages, and states the
+one-sentence claim you should be able to defend afterwards.
 
 ---
 

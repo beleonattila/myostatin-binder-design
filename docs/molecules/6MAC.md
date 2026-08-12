@@ -45,7 +45,7 @@ Goal: GDF8 residues equivalent to the GDF11 residues that contact ActRIIB.
    hotspots/hotspot_residues.txt
 ```
 
-Detail on the interface concept: [PPI hotspots](../concepts/PPI-hotspots.md). Detail on tools: [PyMOL](../methods/PyMOL.md), [TMalign](../methods/TMalign.md).
+Detail on the interface concept: [PPI hotspots](../concepts/PPI-hotspots.md). Detail on tools: [PyMOL](../tools/PyMOL.md), [TMalign](../tools/TMalign.md).
 
 ---
 
@@ -69,4 +69,4 @@ Detail on the interface concept: [PPI hotspots](../concepts/PPI-hotspots.md). De
 - The real target it informs: [GDF8](GDF8.md) via [5JI1](5JI1.md)
 - The receptor defining the epitope: [ActRIIB](ActRIIB.md)
 - Interface theory: [PPI hotspots](../concepts/PPI-hotspots.md)
-- Tools: [PyMOL](../methods/PyMOL.md), [TMalign](../methods/TMalign.md)
+- Tools: [PyMOL](../tools/PyMOL.md), [TMalign](../tools/TMalign.md)

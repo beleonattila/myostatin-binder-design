@@ -25,7 +25,7 @@ Combined quality metrics (PDBe) take the harmonic mean of these percentiles — 
 
 ## Part B — prediction & design confidence metrics (judging your designs)
 
-Used in Module 6 on [ESMFold](../methods/ESMFold.md)/[AlphaFold2](../methods/AlphaFold2.md) outputs.
+Used in Module 6 on [ESMFold](../tools/ESMFold.md)/[AlphaFold2](../tools/AlphaFold2.md) outputs.
 
 ### pLDDT (per-residue, 0–100)
 Local confidence in each residue's predicted position.
@@ -45,7 +45,7 @@ Single-number interface confidence. Binder rankings often use a weighted blend l
 
 ### RMSD / TM-score (design vs refold) — you compute
 - **RMSD** (Å): average atomic deviation after superposition. **< 2 Å Cα** = refold matches design. Report the number of atoms aligned too — low RMSD over few atoms is misleading.
-- **TM-score** (0–1, length-normalised, from [TMalign](../methods/TMalign.md)): **> 0.5** same fold, **> 0.9** near-identical. More robust to length than raw RMSD.
+- **TM-score** (0–1, length-normalised, from [TMalign](../tools/TMalign.md)): **> 0.5** same fold, **> 0.9** near-identical. More robust to length than raw RMSD.
 - **pTM vs TM-score:** pTM is the model's *self-estimate*; TM-score is a *measurement between two structures*. Use both.
 
 ---
@@ -62,7 +62,7 @@ Apply in order; drop anything that fails:
 5. Rank survivors by ProteinMPNN score (more negative = better)
 ```
 
-Then eyeball the top 3–5 in [PyMOL](../methods/PyMOL.md) — metrics never fully replace looking at the interface.
+Then eyeball the top 3–5 in [PyMOL](../tools/PyMOL.md) — metrics never fully replace looking at the interface.
 
 ---
 
@@ -75,5 +75,5 @@ These are **confidence and self-consistency** measures, not measurements of bind
 ## Links
 
 - Structures judged with Part A: [3HH2](../molecules/3HH2.md), [5JI1](../molecules/5JI1.md)
-- Tools producing Part B: [ESMFold](../methods/ESMFold.md), [AlphaFold2](../methods/AlphaFold2.md), [TMalign](../methods/TMalign.md), [PyMOL](../methods/PyMOL.md)
+- Tools producing Part B: [ESMFold](../tools/ESMFold.md), [AlphaFold2](../tools/AlphaFold2.md), [TMalign](../tools/TMalign.md), [PyMOL](../tools/PyMOL.md)
 - Pipeline context: [de novo binder design](de-novo-binder-design.md)

@@ -43,15 +43,15 @@ Each arrow is a hand-off of a concrete artifact (PDB → PDB+FASTA → PDB+score
 
 ---
 
-## Step 1 — Shape: [RFdiffusion](../methods/RFdiffusion.md)
+## Step 1 — Shape: [RFdiffusion](../tools/RFdiffusion.md)
 
 A denoising [diffusion model](diffusion-models.md) (fine-tuned RoseTTAFold) generates novel binder **backbones** conditioned on the target and the [hotspots](PPI-hotspots.md). Output is geometry only — placeholder residues. It answers "what shape sits here," nothing about identity.
 
-## Step 2 — Sequence: [ProteinMPNN](../methods/ProteinMPNN.md)
+## Step 2 — Sequence: [ProteinMPNN](../tools/ProteinMPNN.md)
 
 An [inverse-folding](inverse-folding.md) graph network assigns amino acid sequences predicted to fold into each backbone. The target chain is fixed; only the binder is designed. Output: several candidate sequences per backbone.
 
-## Step 3 — Validation: [ESMFold](../methods/ESMFold.md) / [AlphaFold2](../methods/AlphaFold2.md)
+## Step 3 — Validation: [ESMFold](../tools/ESMFold.md) / [AlphaFold2](../tools/AlphaFold2.md)
 
 Refold each designed sequence *independently* and check it reproduces the intended backbone (**self-consistency**), plus — with AF2-multimer — that the binder docks at the target ([validation metrics](validation-metrics.md): pTM, pLDDT, pAE, iPTM, RMSD/TM-score). Survivors of the filter are your designs.
 
@@ -93,5 +93,5 @@ For your outreach, this framing is the credible one: *"an in silico design exerc
 
 ## Links (the whole map)
 
-Methods: [RFdiffusion](../methods/RFdiffusion.md) · [ProteinMPNN](../methods/ProteinMPNN.md) · [ESMFold](../methods/ESMFold.md) · [AlphaFold2](../methods/AlphaFold2.md) · [PyMOL](../methods/PyMOL.md) · [TMalign](../methods/TMalign.md)
+Methods: [RFdiffusion](../tools/RFdiffusion.md) · [ProteinMPNN](../tools/ProteinMPNN.md) · [ESMFold](../tools/ESMFold.md) · [AlphaFold2](../tools/AlphaFold2.md) · [PyMOL](../tools/PyMOL.md) · [TMalign](../tools/TMalign.md)
 Concepts: [diffusion models](diffusion-models.md) · [inverse folding](inverse-folding.md) · [PPI hotspots](PPI-hotspots.md) · [validation metrics](validation-metrics.md) · [TGF-β superfamily](TGF-beta-superfamily.md)

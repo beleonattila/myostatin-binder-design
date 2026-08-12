@@ -21,6 +21,36 @@ Myostatin is a secreted myokine and the strongest known negative regulator of sk
 
 ---
 
+## Biosynthesis and latency
+
+Myostatin is translated as a precursor with an N-terminal **prodomain** and a
+C-terminal **mature growth-factor domain**. After the first cleavage the
+prodomain stays non-covalently bound, caging the ligand as a **latent complex**;
+a second proteolysis (BMP-1/tolloid family) releases the active mature dimer.
+
+Only the mature, released dimer engages receptors, and that is the species you
+design against. The prodomain is not part of your target — but latency is worth
+holding onto as context, because prodomain-based caging is one of the natural
+antagonism strategies your binder is a minimal synthetic version of (see
+[TGF-β superfamily](../concepts/TGF-beta-superfamily.md)).
+
+---
+
+## Why it is a clean design target
+
+- **Extraordinary conservation** — myostatin is among the most conserved proteins
+  across mammals; the mouse and human mature domains are essentially identical.
+  A structure solved in mouse is therefore a valid stand-in for the human target.
+  (Still verify the sequence match during prep rather than assuming it.)
+- **Well-characterised interfaces** — decades of TGF-β structural work mean both
+  the type I (wrist) and type II (knuckle) sites are mapped, so the epitope can
+  be chosen rationally rather than blindly.
+- **Validated by genetics** — loss-of-function humans and animals are muscular
+  and otherwise healthy, which is the evidence that the target is safe *if hit
+  cleanly*. See [ActRIIB](ActRIIB.md) for why "cleanly" is the hard part.
+
+---
+
 ## Structure you need to hold
 
 Myostatin adopts the canonical TGF-β **cystine-knot growth factor fold** — read [TGF-β superfamily](../concepts/TGF-beta-superfamily.md) first if that phrase isn't automatic for you. The essentials for *this* project:
@@ -71,4 +101,4 @@ Different sources number GDF8 residues either by **full-length precursor** (1–
 - The proxy for hotspots: [GDF11](GDF11.md) → [6MAC](6MAC.md)
 - Target structure: [5JI1](5JI1.md)
 - Why not 3HH2: [3HH2](3HH2.md)
-- What to do with it: [RFdiffusion](../methods/RFdiffusion.md)
+- What to do with it: [RFdiffusion](../tools/RFdiffusion.md)

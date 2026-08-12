@@ -5,7 +5,55 @@
 **Goal:** Learn RFDiffusion and ProteinMPNN by designing de novo helical binders targeting the ActRIIB-binding epitope of myostatin (GDF-8). Produce credible, interpretable outputs to demonstrate practical experience with these tools.  
 **Environment:** Now executing on a **native Ubuntu** machine (RTX 4050, 6 GB) — the project has moved off the Windows host. Miniforge (conda+mamba) installed; the three tool environments are built and GPU-verified. See "Execution environment — LIVE STATUS" below.
 
-> 📌 **This file is the decision log.** Polished, user-facing documentation now lives in `docs/` (an MkDocs "wiki") and `README.md`. See "Repository structure & best practices" below for the full layout. Keep recording dated decisions/corrections here; keep the narrative explanations in `docs/`.
+> 📌 **This file is the decision log.** Polished, user-facing documentation now lives in `docs/` (an MkDocs site) and `README.md`. See "Repository structure & best practices" below for the full layout. Keep recording dated decisions/corrections here; keep the narrative explanations in `docs/`.
+
+---
+
+## Decision Update — 2026-08-12 (docs consolidation: `wiki/` merged into `docs/`)
+
+> ⚠️ **Supersedes every `wiki/…` path in the entries below.** The `wiki/` tree no
+> longer exists. Historical narrative referring to "importing the theory wiki" is
+> left intact as history; the path pointers have been updated in place.
+
+**Problem.** The repo carried two parallel documentation trees. `mkdocs.yml` sets
+`docs_dir: docs`, so everything under `wiki/` was **excluded from the built
+site** — roughly 1,100 lines of theory that was unsearchable and invisible to
+anyone reading the rendered docs. The split also had no stable meaning:
+`docs/background/` and `wiki/concepts/` were the same kind of content.
+
+**Change.** Merged `wiki/` into `docs/` and deleted it.
+
+| Old | New | Note |
+|---|---|---|
+| `wiki/concepts/` | `docs/concepts/` | joined by the two ex-`background/` theory pages |
+| `docs/molecules/` | `docs/molecules/` | unchanged |
+| `wiki/methods/` | **`docs/tools/`** | renamed — collided with `docs/methods/`, which is the *runnable steps*, not tool theory |
+| `docs/background/tgf-beta-receptors.md` | `docs/concepts/tgf-beta-receptors.md` | |
+| `docs/background/epitope.md` | `docs/concepts/epitope.md` | |
+| `docs/background/myostatin.md` | **merged into** `docs/molecules/GDF8.md` | ~70 % duplicate; GDF8 page was the fuller one |
+| `wiki/index.md` | **merged into** `docs/index.md` | page-network diagram and page tables preserved |
+
+`docs/background/` is gone. All moves used `git mv`, so file history is intact.
+
+**Content reconciliation.** Two pages contradicted each other on mechanism:
+`docs/background/tgf-beta-receptors.md` and `docs/reference/glossary.md` both
+described the binder as an **ActRIIB "mimic"**, while `docs/molecules/ActRIIB.md`
+correctly states it occupies ActRIIB's *footprint on the ligand* without
+reproducing the receptor surface. Corrected to the latter in both places — this
+is a real mechanistic distinction, not wording.
+
+`concepts/PPI-hotspots.md` (general ΔΔG/alanine-scanning theory) and
+`concepts/epitope.md` (the myostatin knuckle at residue resolution) were kept as
+separate pages — different altitude, not duplicates — and cross-linked.
+
+**Residual overlap, accepted:** `concepts/TGF-beta-superfamily.md` and
+`concepts/tgf-beta-receptors.md` each carry a wrist-vs-knuckle table. They are
+consistent and framed differently (epitopes-as-ligand-surfaces vs
+receptors-and-cascade), so both were kept with cross-links rather than merged.
+Revisit if they drift.
+
+**Also updated:** `mkdocs.yml` nav (Concepts / Molecules / Tools / Methods /
+Reference), `README.md`, `SYLLABUS.md` (~20 links), and the pointers in this file.
 
 ---
 
@@ -77,8 +125,8 @@ consistency found above is encouraging, not proof.
 
 **Cost of the change:** none sunk — Steps 1 and 2 had not been executed (no target
 PDB extracted, no hotspot list committed). This is a plan change, not a rework.
-Full rationale and per-structure detail: `wiki/molecules/5JI1.md`,
-`wiki/molecules/6MAC.md`, `wiki/molecules/3HH2.md`. Runnable recipes updated in
+Full rationale and per-structure detail: `docs/molecules/5JI1.md`,
+`docs/molecules/6MAC.md`, `docs/molecules/3HH2.md`. Runnable recipes updated in
 `docs/methods/01-target-prep.md` and `docs/methods/02-hotspots.md`.
 
 **Carry-over caveat:** confirm the numbering scheme 5JI1 uses before writing
@@ -266,11 +314,11 @@ myostatin_test/
 ├── .gitignore           # excludes weights, raw PDBs, outputs, site/
 ├── envs/                # rfdiffusion.yml | proteinmpnn.yml | esm.yml
 ├── scripts/             # setup_rfdiffusion.sh (+ pipeline scripts to come)
-├── docs/                # the "wiki": background/ methods/ reference/
+├── docs/                # all docs: concepts/ molecules/ tools/ methods/ reference/
 ├── data/ hotspots/ rfdiffusion/ proteinmpnn/ esm_validation/ analysis/ results/
 ```
 
-**Docs ("wiki"):** in-repo `docs/` rendered with **MkDocs Material** (`mkdocs serve`). Written for a bioinformatics/biology reader. `docs/background/` = the science, `docs/methods/` = runnable steps 1–6, `docs/reference/` = glossary + hardware/Docker.
+**Docs:** in-repo `docs/` rendered with **MkDocs Material** (`mkdocs serve`). Written for a bioinformatics/biology reader. `docs/concepts/` = theory, `docs/molecules/` = the ligands/receptors/PDB entries, `docs/tools/` = what each program does, `docs/methods/` = runnable steps 1–6, `docs/reference/` = glossary + hardware/Docker.
 
 **Docker — deferred (decided 2026-06-28).** This stack is the poster child for "works on my machine", so Docker genuinely adds value — but learning `nvidia-container-toolkit` mid-project would compete with the core goal. The repo is built **Docker-ready** (pinned versions, clean env files, one setup script); adding a `Dockerfile` is a short later exercise. Plan sketch in `docs/reference/hardware-and-docker.md`.
 

@@ -17,7 +17,7 @@ inside the 6 GB VRAM budget.
 We deliberately avoid the older **3HH2** (myostatin:follistatin-288, 2009): its
 epitope is occluded by follistatin, and its 2009-era validation (clashscore ~44,
 ~14 % sidechain outliers) makes interface geometry unreliable. 3HH2 is a fold
-reference only — see `wiki/molecules/3HH2.md` for the full disqualification.
+reference only — see [3HH2](../molecules/3HH2.md) for the full disqualification.
 
 ## Procedure (the script that was actually run)
 

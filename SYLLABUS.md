@@ -4,14 +4,14 @@ A structured curriculum for gaining demonstrable, defensible competence in RFdif
 
 This is not a "click the Colab and get a PDB" exercise. The goal is that you can defend every step in an interview with a computational protein design group. The syllabus is organised so that each module produces both an *artifact* (a file, a structure, a score) and a *sentence you can say out loud* about what you did and why.
 
-**Companion wiki:** [wiki/index.md](wiki/index.md) — every molecule and method below has a dedicated theory page. Read the linked page before running the corresponding step.
+**Companion docs:** [docs/index.md](docs/index.md) — every molecule and method below has a dedicated theory page. Read the linked page before running the corresponding step.
 
 ---
 
 ## How to use this document
 
 Work top to bottom. Each module has:
-- **Learn** — the theory you must hold before touching a keyboard (links to wiki)
+- **Learn** — the theory you must hold before touching a keyboard (links to `docs/`)
 - **Do** — the concrete action
 - **Produce** — the artifact that proves the module is done
 - **Defend** — the one-sentence claim you should be able to make and back up
@@ -22,7 +22,7 @@ Do not skip the *Learn* column. The single most common way this project fails is
 
 ## Module 0 — Orientation and Compute
 
-**Learn:** The four-stage pipeline logic — why backbone generation, sequence design, and folding validation are three separate problems solved by three separate tools. See [de novo binder design](wiki/concepts/de-novo-binder-design.md).
+**Learn:** The four-stage pipeline logic — why backbone generation, sequence design, and folding validation are three separate problems solved by three separate tools. See [de novo binder design](docs/concepts/de-novo-binder-design.md).
 
 **Do:**
 - Run `nvidia-smi` in PowerShell. Record GPU model and VRAM.
@@ -38,9 +38,9 @@ Do not skip the *Learn* column. The single most common way this project fails is
 ## Module 1 — The Biology of the Target
 
 **Learn:**
-- [TGF-β superfamily](wiki/concepts/TGF-beta-superfamily.md) — the structural fold family myostatin belongs to (cystine knot, "hand" topology, wrist and knuckle epitopes).
-- [GDF8 (myostatin)](wiki/molecules/GDF8.md) — the ligand itself: dimer, latency, receptor usage.
-- [ActRIIB](wiki/molecules/ActRIIB.md) — the type II receptor whose binding you want to block.
+- [TGF-β superfamily](docs/concepts/TGF-beta-superfamily.md) — the structural fold family myostatin belongs to (cystine knot, "hand" topology, wrist and knuckle epitopes).
+- [GDF8 (myostatin)](docs/molecules/GDF8.md) — the ligand itself: dimer, latency, receptor usage.
+- [ActRIIB](docs/molecules/ActRIIB.md) — the type II receptor whose binding you want to block.
 
 **Do:** Read the three pages. Draw, by hand, the myostatin dimer with the two type II (knuckle) and two type I (wrist/fingertip) receptor sites marked. You cannot design a competitive binder if you cannot point to the epitope you are competing with.
 
@@ -53,10 +53,10 @@ Do not skip the *Learn* column. The single most common way this project fails is
 ## Module 2 — Choosing and Cleaning the Structure
 
 **Learn:**
-- [5JI1](wiki/molecules/5JI1.md) — apo GDF8, your RFdiffusion target and why apo matters.
-- [3HH2](wiki/molecules/3HH2.md) — the GDF8:follistatin-288 complex, and why its validation scores disqualify it as a target.
-- [follistatin-288](wiki/molecules/follistatin-288.md) — what is sitting on the surface in 3HH2 and why that occludes the epitope.
-- [validation metrics](wiki/concepts/validation-metrics.md) — how to read a wwPDB slider (Rfree, clashscore, Ramachandran, sidechain, RSRZ).
+- [5JI1](docs/molecules/5JI1.md) — apo GDF8, your RFdiffusion target and why apo matters.
+- [3HH2](docs/molecules/3HH2.md) — the GDF8:follistatin-288 complex, and why its validation scores disqualify it as a target.
+- [follistatin-288](docs/molecules/follistatin-288.md) — what is sitting on the surface in 3HH2 and why that occludes the epitope.
+- [validation metrics](docs/concepts/validation-metrics.md) — how to read a wwPDB slider (Rfree, clashscore, Ramachandran, sidechain, RSRZ).
 
 **Do:**
 - Download 5JI1 from RCSB → `data/raw/`.
@@ -72,8 +72,8 @@ Do not skip the *Learn* column. The single most common way this project fails is
 ## Module 3 — Hotspot Identification (the scientific crux)
 
 **Learn:**
-- [PPI hotspots](wiki/concepts/PPI-hotspots.md) — what a hotspot residue is (ΔΔG on alanine mutation), why interfaces are driven by a few residues.
-- [GDF11](wiki/molecules/GDF11.md) and [6MAC](wiki/molecules/6MAC.md) — the GDF11:ActRIIB:ALK5 ternary complex you will borrow interface geometry from, and the 90% mature-domain identity that licenses the transfer.
+- [PPI hotspots](docs/concepts/PPI-hotspots.md) — what a hotspot residue is (ΔΔG on alanine mutation), why interfaces are driven by a few residues.
+- [GDF11](docs/molecules/GDF11.md) and [6MAC](docs/molecules/6MAC.md) — the GDF11:ActRIIB:ALK5 ternary complex you will borrow interface geometry from, and the 90% mature-domain identity that licenses the transfer.
 
 **Do:**
 - Superpose 5JI1 (GDF8) onto the GDF11 chain of 6MAC in PyMOL.
@@ -90,8 +90,8 @@ Do not skip the *Learn* column. The single most common way this project fails is
 ## Module 4 — Backbone Generation with RFdiffusion
 
 **Learn:**
-- [diffusion models](wiki/concepts/diffusion-models.md) — forward noising / reverse denoising, why this is a generative model.
-- [RFdiffusion](wiki/methods/RFdiffusion.md) — the fine-tuned RoseTTAFold, contig syntax, `ppi.hotspot_res`, self-conditioning, what the outputs are (and aren't).
+- [diffusion models](docs/concepts/diffusion-models.md) — forward noising / reverse denoising, why this is a generative model.
+- [RFdiffusion](docs/tools/RFdiffusion.md) — the fine-tuned RoseTTAFold, contig syntax, `ppi.hotspot_res`, self-conditioning, what the outputs are (and aren't).
 
 **Do:** Run binder hallucination, 20 designs, binder length 50–70, hotspots from Module 3. Inspect every output in PyMOL against the target.
 
@@ -104,8 +104,8 @@ Do not skip the *Learn* column. The single most common way this project fails is
 ## Module 5 — Sequence Design with ProteinMPNN
 
 **Learn:**
-- [inverse folding](wiki/concepts/inverse-folding.md) — the structure→sequence problem, why it is distinct from folding.
-- [ProteinMPNN](wiki/methods/ProteinMPNN.md) — MPNN encoder over backbone graph, order-agnostic autoregressive decoding, temperature, fixing the target chain.
+- [inverse folding](docs/concepts/inverse-folding.md) — the structure→sequence problem, why it is distinct from folding.
+- [ProteinMPNN](docs/tools/ProteinMPNN.md) — MPNN encoder over backbone graph, order-agnostic autoregressive decoding, temperature, fixing the target chain.
 
 **Do:** For each shortlisted backbone, design 8+ sequences at temperature 0.1 (raise to 0.2 if outputs collapse), fixing the target chain, designing only the binder chain.
 
@@ -118,10 +118,10 @@ Do not skip the *Learn* column. The single most common way this project fails is
 ## Module 6 — In Silico Validation
 
 **Learn:**
-- [ESMFold](wiki/methods/ESMFold.md) — language-model folding, why an independent refold is a self-consistency test.
-- [AlphaFold2](wiki/methods/AlphaFold2.md) — the stronger (AF2-multimer) alternative and its interface metrics (iPTM, pAE).
-- [TMalign](wiki/methods/TMalign.md) and [PyMOL](wiki/methods/PyMOL.md) — measuring RMSD of refold vs. design.
-- [validation metrics](wiki/concepts/validation-metrics.md) — pLDDT, pTM, pAE, iPTM thresholds.
+- [ESMFold](docs/tools/ESMFold.md) — language-model folding, why an independent refold is a self-consistency test.
+- [AlphaFold2](docs/tools/AlphaFold2.md) — the stronger (AF2-multimer) alternative and its interface metrics (iPTM, pAE).
+- [TMalign](docs/tools/TMalign.md) and [PyMOL](docs/tools/PyMOL.md) — measuring RMSD of refold vs. design.
+- [validation metrics](docs/concepts/validation-metrics.md) — pLDDT, pTM, pAE, iPTM thresholds.
 
 **Do:** Refold each designed sequence (ESMFold API first; AF2-multimer if you have GPU/Colab budget). Superpose onto the RFdiffusion backbone, compute RMSD, record pTM/pLDDT.
 
@@ -133,7 +133,7 @@ Do not skip the *Learn* column. The single most common way this project fails is
 
 ## Module 7 — Ranking, Interpretation, Write-up
 
-**Learn:** Re-read [de novo binder design](wiki/concepts/de-novo-binder-design.md) end-to-end now that you've done every step; the pieces should click into a single narrative.
+**Learn:** Re-read [de novo binder design](docs/concepts/de-novo-binder-design.md) end-to-end now that you've done every step; the pieces should click into a single narrative.
 
 **Do:** Apply the filter cascade (pTM → pLDDT → RMSD → MPNN score). Open the top 3–5 in PyMOL, confirm interface contacts, screenshot.
 
@@ -166,4 +166,4 @@ You can hold a 10-minute conversation with a protein-design PI in which you corr
 4. GDF8/GDF11 structural comparison — Walker et al., *BMC Biology* 15, 19 (2017) (covers 3HH2, 5JI1, potency determinants).
 5. GDF11 ternary receptor complex — Goebel et al., *PNAS* 116, 15505–15513 (2019) (6MAC).
 
-Full theory for each is in the [wiki](wiki/index.md).
+Full theory for each is in the [documentation site](docs/index.md).

@@ -1,6 +1,6 @@
 # Inverse Folding
 
-The theory behind [ProteinMPNN](../methods/ProteinMPNN.md). Understanding why this is a *separate* problem from folding is the key conceptual gain.
+The theory behind [ProteinMPNN](../tools/ProteinMPNN.md). Understanding why this is a *separate* problem from folding is the key conceptual gain.
 
 ---
 
@@ -11,9 +11,9 @@ The theory behind [ProteinMPNN](../methods/ProteinMPNN.md). Understanding why th
 | Question | Given a **sequence**, what **structure**? | Given a **structure**, what **sequence**? |
 | Direction | sequence → structure | structure → sequence |
 | Tools | AlphaFold2, ESMFold, RoseTTAFold | ProteinMPNN, ESM-IF, Rosetta design |
-| In this project | validation ([ESMFold](../methods/ESMFold.md)) | design ([ProteinMPNN](../methods/ProteinMPNN.md)) |
+| In this project | validation ([ESMFold](../tools/ESMFold.md)) | design ([ProteinMPNN](../tools/ProteinMPNN.md)) |
 
-[RFdiffusion](../methods/RFdiffusion.md) hands you a backbone with **no sequence**. Inverse folding fills it in. Then folding (validation) checks the fill-in was correct. The pipeline literally runs the arrow both ways: inverse-fold to design, fold to validate.
+[RFdiffusion](../tools/RFdiffusion.md) hands you a backbone with **no sequence**. Inverse folding fills it in. Then folding (validation) checks the fill-in was correct. The pipeline literally runs the arrow both ways: inverse-fold to design, fold to validate.
 
 ---
 
@@ -31,7 +31,7 @@ sequence `s` given backbone `x`, one residue at a time, each conditioned on the 
 
 ## How ProteinMPNN does it (mechanism recap)
 
-Full detail on the [ProteinMPNN page](../methods/ProteinMPNN.md); the inverse-folding-relevant essentials:
+Full detail on the [ProteinMPNN page](../tools/ProteinMPNN.md); the inverse-folding-relevant essentials:
 
 - **Structure as a graph:** residues = nodes, edges to nearest neighbours, edge features from inter-atomic distances (N, Cα, C, O, virtual Cβ). Message passing builds a representation of each residue's structural environment.
 - **Order-agnostic decoding:** residues are decoded in random order so each position conditions on all others already placed — not just N-terminal ones. This is the trick that lifts it above naive left-to-right models.
@@ -57,7 +57,7 @@ You sample several per backbone so the [validation step](validation-metrics.md) 
 
 ## Links
 
-- The tool: [ProteinMPNN](../methods/ProteinMPNN.md)
-- The inverse direction (validation): [ESMFold](../methods/ESMFold.md), [AlphaFold2](../methods/AlphaFold2.md)
-- Where the backbone comes from: [RFdiffusion](../methods/RFdiffusion.md)
+- The tool: [ProteinMPNN](../tools/ProteinMPNN.md)
+- The inverse direction (validation): [ESMFold](../tools/ESMFold.md), [AlphaFold2](../tools/AlphaFold2.md)
+- Where the backbone comes from: [RFdiffusion](../tools/RFdiffusion.md)
 - Pipeline role: [de novo binder design](de-novo-binder-design.md)
