@@ -25,7 +25,7 @@ TM ≥ 0.5, coverage ≥ 90 %.
 | design_11 | 7/8 |
 | **design_5** | **3/8** |
 
-Best: `design_12_s4` — RMSD **0.40 Å**, pLDDT 90.2, TM 0.976. Twelve sequences
+Best: `design_12_s4` — RMSD **0.40 Å**, pLDDT 90.2, TM 0.976. Ten sequences
 came in under 0.50 Å.
 
 **Three API realities the old method notes got wrong:**
@@ -70,8 +70,9 @@ predict refold accuracy.
 | mean pLDDT vs RMSD | −0.304 |
 | mean pLDDT vs TM-score | +0.358 |
 
-The best-refolding sequence (`design_11_s7`, RMSD 0.42 Å) ranks **63rd of 64** by
-MPNN score; the best MPNN score (`design_15_s4`, 0.957) refolds at only 1.65 Å.
+The best refold (`design_12_s4`, RMSD 0.40 Å) ranks only **41st of 64** by MPNN
+score, and the second-best (`design_11_s7`, 0.42 Å) ranks **63rd of 64**; the best
+MPNN score (`design_15_s4`, 0.957) refolds at only 1.65 Å.
 **You cannot rank candidates on ProteinMPNN score — you have to refold them.**
 That is the defence for why Step 5 is not optional.
 

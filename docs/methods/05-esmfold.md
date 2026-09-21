@@ -96,7 +96,8 @@ normalised by the **design backbone** (the second, given that argument order).
 | MPNN score vs TM-score | **+0.008** |
 | mean pLDDT vs RMSD | −0.304 |
 
-The best-refolding sequence ranks **63rd of 64** by MPNN score; the best MPNN score
+The best refold (`design_12_s4`, 0.40 Å) ranks only **41st of 64** by MPNN score, and
+the second-best (`design_11_s7`, 0.42 Å) ranks **63rd of 64**; the best MPNN score
 refolds at only 1.65 Å. Inverse-folding likelihood and designability are different
 quantities — you have to fold the sequences to find out.
 
