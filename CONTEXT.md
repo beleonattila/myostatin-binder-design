@@ -9,6 +9,336 @@
 
 ---
 
+## Session Log — 2026-08-12 (Step 5 EXECUTED — 64 sequences refolded, 58 self-consistent)
+
+**Done:** all 64 sequences folded with ESMFold via the ESM Atlas REST API,
+compared against their parent backbones → `esm_validation/scores.tsv` and 64 PDBs
+in `esm_validation/predicted_structures/`. Script: `scripts/05_esmfold.py`
+(predictions cached on disk; reruns only fetch what is missing).
+
+**Result: 58/64 (91 %) self-consistent** at RMSD < 2 Å, mean pLDDT ≥ 70,
+TM ≥ 0.5, coverage ≥ 90 %.
+
+| Backbone | Self-consistent |
+|---|---|
+| design_4, 9, 12, 14, 15, 18 | **8/8** each |
+| design_11 | 7/8 |
+| **design_5** | **3/8** |
+
+Best: `design_12_s4` — RMSD **0.40 Å**, pLDDT 90.2, TM 0.976. Twelve sequences
+came in under 0.50 Å.
+
+**Three API realities the old method notes got wrong:**
+
+1. **No pTM.** `/foldSequence/v1/pdb/` returns a bare PDB — no confidence JSON,
+   no pTM anywhere. The documented `pTM > 0.7` filter **cannot be evaluated from
+   this endpoint**. Substituted and stated, not silently dropped: **mean pLDDT ≥ 70**
+   for confidence, **TM-score ≥ 0.5** for "same fold". Real pTM needs ESMFold
+   running locally with weights + GPU.
+2. **pLDDT is on a 0–1 scale**, not 0–100 (B-factors 0.5–0.9). Applying the
+   conventional `>70` cut to raw values fails *every* design. The script detects
+   the scale rather than assuming, since local ESMFold emits 0–100.
+3. **~1 call in 3 returns `HTTP 504`.** Retries with exponential backoff are
+   mandatory; one sequence (`design_14_s3`) needed a second pass and then folded
+   fine (RMSD 1.01 Å).
+
+**Coverage filter added — it caught four false passes.** TMalign reports RMSD over
+the residues it *managed to align*. Three `design_5` sequences aligned only **30 of
+52 residues** and returned **0.55 Å**, which reads as an excellent fit and is
+actually a 58 %-complete one. TM-score already penalised them (~0.55, barely over
+the "same fold" line) but that was too close to the threshold to rely on. Now
+requiring `aligned_length / design_length ≥ 0.90`, which drops `design_5` from 7/8
+to 3/8. **RMSD without coverage is not a self-consistency metric.**
+
+**`design_5`'s failure mode is worth remembering.** It was the **top-ranked
+backbone in Step 3** (469 Å² buried, 12 contacts, most of any design) and is the
+**worst for designability**. Rendering the overlay
+(`analysis/step5/partial_design_5_s5.png`) shows why: the design is a helical
+hairpin, and ESMFold predicts **one long straight helix** — it matched one arm and
+ran straight on instead of forming the turn. Critically, it is **confident about
+the wrong answer**: pLDDT 90.0. Isolated helices are easy to predict, so high
+pLDDT does not mean the design is right. Interface quality and designability are
+**different axes**, and Step 3 cannot see the second one.
+
+**The finding that justifies this whole step:** the ProteinMPNN score does **not**
+predict refold accuracy.
+
+| Correlation (Spearman, n=64) | |
+|---|---|
+| MPNN score vs RMSD | **−0.055** |
+| MPNN score vs TM-score | **+0.008** |
+| mean pLDDT vs RMSD | −0.304 |
+| mean pLDDT vs TM-score | +0.358 |
+
+The best-refolding sequence (`design_11_s7`, RMSD 0.42 Å) ranks **63rd of 64** by
+MPNN score; the best MPNN score (`design_15_s4`, 0.957) refolds at only 1.65 Å.
+**You cannot rank candidates on ProteinMPNN score — you have to refold them.**
+That is the defence for why Step 5 is not optional.
+
+**Also produced:** `analysis/step5/best_design_12_s4.png` (prediction coloured by
+pLDDT over the grey design backbone, 0.40 Å) and
+`analysis/step5/partial_design_5_s5.png` (the partial-alignment failure).
+
+**Figure gotcha:** `cmd.align` is useless for overlaying a prediction on an
+RFdiffusion backbone — it does a sequence alignment first, and the backbone is
+poly-glycine, so it matched **4 atoms**. Use `cealign` (or TMalign), which are
+purely structural. The scores in `scores.tsv` were always TMalign and were never
+affected.
+
+**Carry-in for Step 6:** rank the 58 survivors. `esm_validation/scores.tsv` already
+carries pLDDT, RMSD, TM, coverage, MPNN score, interface hydrophobicity and net
+charge per sequence; `rfdiffusion/outputs/triage.tsv` carries the backbone-level
+buried area and hotspot count. Note that the two do **not** agree on which
+backbone is best (design_5 vs design_12), so the ranking has to state which axis
+it weights and why.
+
+---
+
+## Session Log — 2026-08-12 (Step 4 EXECUTED — 64 sequences designed)
+
+**Done:** ProteinMPNN cloned, 8 sequences designed for each of the 8 shortlisted
+backbones → 64 sequences in `proteinmpnn/outputs/seqs/`, analysed into
+`proteinmpnn/outputs/sequences.tsv`. Scripts: `scripts/04_proteinmpnn.sh`,
+`scripts/04b_analyze_sequences.py`. **~40 s total on CPU.**
+
+**Run parameters:** `--pdb_path_chains B` (design binder, fix target by omission),
+`--num_seq_per_target 8`, `--sampling_temp 0.1`, `--model_name v_48_020`,
+`--omit_AAs CX`, `--seed 42`.
+
+**Flag-name bug in the old docs:** both `CONTEXT.md` and
+`docs/methods/04-proteinmpnn.md` said `--pdb_path_chains_to_design`. **That
+argument does not exist** — argparse rejects it. The real flag is
+**`--pdb_path_chains`**; everything not listed is fixed automatically. Corrected
+in the docs.
+
+**Verified before running:**
+- The RFdiffusion output's chain A **keeps the real myostatin sequence** (only the
+  binder is poly-glycine) — confirmed identical to `myostatin_target.pdb`. So
+  fixing chain A genuinely conditions the design on myostatin's own sidechains,
+  which is the entire reason this step runs on the complex rather than the
+  isolated binder.
+- **The 51–64 gap is handled correctly.** ProteinMPNN reports `length 169`
+  (= 109 + 60), because its parser expands chain A over its full numbering range
+  and inserts the 14 unresolved residues as `-` with NaN coordinates. Checked
+  `tied_featurize` directly: those positions get **`mask = 0`**, NaNs are zeroed
+  only *after* masking, and they still occupy their index slots, so the positional
+  encoding across the gap stays truthful. Nothing to fix.
+- Cysteine omitted at design time: free Cys risks disulfide scrambling against
+  myostatin's nine cysteines.
+
+**Repeated the Step 3 mistake, then fixed it structurally.** The first version of
+`04b` measured which binder positions touch the epitope by querying the raw
+`design_N.pdb` — backbone-only on *both* chains — and found only **1–5** contact
+positions with meaningless residue identities (hotspot hydrophobicity 0.31, *below*
+the whole-binder mean). Same trap as Step 3. Rather than patch it again, the
+corrected representation was factored into **`scripts/_structure_utils.py`**
+(`add_virtual_cb`, `load_design`, `contacting_binder_positions`); `03b` and `04b`
+both import it now, and `03b`'s numbers are unchanged after the refactor. **Any
+future script that asks "what does the binder touch?" must go through that
+module.**
+
+**Results — the sequences match the structural intent.**
+
+| Check | Result |
+|---|---|
+| Hotspot-contacting binder positions | **7–13** per design (was 1–5 under the broken measurement) |
+| ProteinMPNN score (neg. log-likelihood, lower better) | 0.957–1.225 |
+| Mean pairwise identity | **66 %** — healthy, no collapse at T=0.1 |
+| Cysteines | none |
+| Net charge | −7 to +4 (mean −1.3) |
+
+**The hydrophobic gradient is the headline result:** whole binder **0.33** →
+epitope-contacting face **0.46** → hotspot-contacting ring **0.57**. Apolar
+residues placed exactly where the design buries surface, polar left on the solvent
+face. That ordering — not the raw score — is the evidence that ProteinMPNN
+"understood" the interface.
+
+**Best by score:** `design_15` sample 4 (0.957), `design_15` sample 5 (0.961),
+`design_15` sample 3 (0.963), `design_4` sample 2 (0.978), `design_14` sample 4
+(0.986). Note `design_14`'s sequences carry the *highest* interface hydrophobicity
+(0.67–0.75) while scoring mid-pack — score and interface quality are not the same
+axis, and Step 5 arbitrates.
+
+**Known bias, stated rather than hidden:** the sequences are heavily E/K/A-rich —
+ProteinMPNN's well-documented tendency to over-charge solvent-exposed faces. Good
+for its likelihood, a real liability for expression and non-specific binding.
+`--use_soluble_model` is the lever if it matters later.
+
+**Also fixed:** `03b` wrote `triage.tsv` with `\r\n` (Python `csv` default), which
+put a trailing CR inside the last field's value and made the awk shortlist parse in
+`04_proteinmpnn.sh` silently return zero designs. Writer now pins
+`lineterminator="\n"`, and the awk strips CR defensively.
+
+**Carry-in for Step 5:** 64 sequences, 52–60 aa — all well inside the ESMFold API
+limit. Fold each, superpose onto its parent RFdiffusion backbone (chain B of the
+corresponding `design_N.pdb`), and record pTM / mean pLDDT / Cα-RMSD. The parent
+backbone for each sequence is the `backbone` column of `sequences.tsv`.
+
+---
+
+## Session Log — 2026-08-12 (Step 3 EXECUTED — 20 backbones generated and triaged)
+
+**Done:** 20 binder backbones in `rfdiffusion/outputs/`, scored into
+`rfdiffusion/outputs/triage.tsv`, shortlist of 8 selected for ProteinMPNN.
+Scripts: `scripts/03_rfdiffusion.sh`, `scripts/03b_triage_backbones.py`,
+`scripts/03c_render_designs.py`.
+
+**Run parameters** (all encoded in `scripts/03_rfdiffusion.sh`):
+
+```
+contigmap.contigs=[A1-50/A65-109/0 45-60]
+ppi.hotspot_res=[A33,A34,A85,A87,A93,A95]
+inference.num_designs=20  diffuser.T=50
+denoiser.noise_scale_ca=0  denoiser.noise_scale_frame=0
+inference.empty_cache_per_design=True
+```
+
+Checkpoint auto-selected as `Complex_base_ckpt.pt` (triggered by `ppi.hotspot_res`
+being set); `d_t1d=24`, so the hotspot feature is genuinely active. **0.76
+min/design**, ~16 min for 20, no OOM on the 6 GB card at 140–155 total residues.
+Motif RMSD 0.13 Å every step — the target stays rigid, as intended.
+
+**Three traps hit and resolved — all worth remembering:**
+
+1. **`denoising_steps` is not a parameter.** The old `docs/methods/03-rfdiffusion.md`
+   recipe used it; Hydra rejects it. The key is **`diffuser.T`**.
+2. **The "changing diffuser.T" warning is benign here.** RFdiffusion warns on
+   *any* explicit CLI override of a trained parameter — including when the value
+   is identical. `Complex_base_ckpt.pt` was trained at **T=50**, exactly what we
+   passed (checked via `ckpt['config_dict']['diffuser']['T']`). Do **not** "raise
+   T to 200 for final runs" as the old docs suggested.
+3. **Output is BACKBONE-ONLY (N, CA, C, O — no CB), on both chains.** This
+   produced a completely false first triage: every design looked like a floater
+   (~100 Å² buried, 1/6 hotspots, 2–3 contacts). A properly packed interface
+   *shows* a 4–8 Å backbone gap, because that is the sidechain layer. Fixes:
+   restore the target's real sidechains by superposing `myostatin_target.pdb`
+   onto output chain A (valid because the target is rigid), and build **virtual
+   CB** on the binder from N/CA/C — validated against real CB atoms at **0.040 Å
+   mean deviation**. Then **`cmd.alter(..., 'vdw=1.7')`**: PyMOL creates
+   pseudoatoms with `vdw=1.0` regardless of `elem`, which was silently shrinking
+   every buried-area number by ~35 %.
+
+**Output convention (verified against the .trb):** chain A = target, 5JI1 mature
+numbering, 51–64 gap preserved; chain B = binder, numbered from 1. Step 2
+hotspots therefore apply to the outputs unchanged.
+
+**Calibration instead of invented thresholds.** The real ActRIIB:GDF11 interface
+(6MAC) scored in both representations: **697 Å² full-atom vs 293 Å² backbone+CB**
+over 22 vs 9 ligand residues. Sidechains carry **58 %** of a real interface, so
+all design dSASA figures are lower bounds and ProteinMPNN supplies the remaining
+~2.4×. Treated as a floor for "is it docked", not a quality bar — ActRIIB binds
+via sidechain knobs off a β-sheet while these designs pack helices flat, so
+backbone burial is not strictly comparable across binding modes.
+
+**Results — 17/20 PASS, all 20 docked on the right epitope.**
+
+| Metric | Range across 20 |
+|---|---|
+| Hotspots engaged | **5–6 of 6** (10 designs hit all six) |
+| Buried area (backbone+CB) | 205–472 Å² (real receptor: 293 Å² in the same units) |
+| Helix fraction | 0.73–0.97 |
+| Binder length | 51–60 |
+
+Per-hotspot engagement: A33 20/20, A85 20/20, A93 20/20, A87 18/20, A95 17/20,
+A34 15/20. Every hotspot is reachable — the Step 2 set was not over-constrained.
+
+**Compactness filter added after inspecting the results.** Three designs (10, 17,
+19) had **Rg 21–24 Å against ~12–14 Å** for the rest. A folded globular protein
+obeys Rg ≈ 2.2·N^0.38 (≈10 Å at N=55), so these are ~2.3× the folded expectation.
+Rendering `design_10` confirmed it: a **single continuous 56-residue helix** lying
+across the epitope with most of its length in solvent. It engaged 5 hotspots and
+buried 205 Å², so every contact-based filter would have passed it. Rejected on
+`Rg/expected > 1.5`; the separation is cleanly bimodal (passes 1.06–1.34,
+rejects 2.05–2.35). **Contact metrics alone cannot tell a binder from a stick.**
+
+**Shortlist for Step 4** (top 8, all 6/6 hotspots, ranked by buried area):
+`design_5` (469 Å²), `design_18` (448), `design_15` (406), `design_14` (404),
+`design_12` (402), `design_11` (402), `design_4` (385), `design_9` (370).
+Visually these are 3–4 helix bundles packed onto the knuckle; `design_14` is the
+most compact (Rg 10.8, ratio 1.06).
+
+**Also produced:** `analysis/step3_designs/*.png` (one panel per shortlisted
+design, plus `REJECTED_design_10.png` as the counter-example) and
+`analysis/pymol_sessions/step3_shortlist.pse` (all 8 on one target — toggle in
+the object panel).
+
+**Carry-in for Step 4:** ProteinMPNN must **fix chain A and design chain B** —
+note this is the opposite assignment from the input file, where the target was
+chain A alone. Clone `github.com/dauparas/ProteinMPNN` first (not yet present).
+
+---
+
+## Session Log — 2026-08-12 (Step 2 EXECUTED — hotspots finalized)
+
+**Done:** the ActRIIB footprint was transferred onto apo GDF8 and committed to
+`hotspots/hotspot_residues.txt`. Reproducible via `scripts/02_hotspots.py`
+(`conda activate esm && python scripts/02_hotspots.py`).
+
+**Method.** Superposed the prepared target onto the GDF11 chain of **two**
+independent complexes and read the GDF8 residues within 4.5 Å of ActRIIB:
+
+| Complex | Res. | Chains used | Superposition (`super`) | Footprint |
+|---|---|---|---|---|
+| **6MAC** GDF11:ActRIIB:ALK5 | 2.34 Å | ligand A, ActRIIB C | 0.70 Å / 81 res | 21 residues |
+| **7MRZ** GDF11:ActRIIB-ALK4:Fab | 3.00 Å | ligand A, ActRIIB = **C resi 19-120** | 0.99 Å / 81 res | 23 residues |
+
+Used `super` (structure-based, outlier-rejecting), not `align` — correct choice
+for homologs, where sequence-anchored alignment gets dragged by the loops.
+
+**Result — the transfer is verified, not assumed.** Three independent checks:
+
+1. **Reproducibility across crystal forms.** All 21 6MAC residues reappear in
+   7MRZ (different crystal form, ALK4 not ALK5, Fab bound). 7MRZ adds only two
+   peripheral residues (78, 105) — treated as crystal-form noise and dropped.
+   **Consensus footprint (21):** E25, I33, A34, P35, K36, R37, Y38, K39, S80,
+   P81, I82, N83, M84, L85, F87, E91, I93, Y95, K97, V102, D104.
+2. **Conservation.** GDF11↔GDF8 is 91 % identical over the aligned mature domain
+   (86/94) — and **20 of 21 footprint residues are the identical amino acid**.
+   The sole exception is **Q91→E**, conservative (BLOSUM62 +2) and burying only
+   35 Å² (23 %). This is the sentence that makes the homology transfer defensible.
+3. **Dimer occlusion — none.** Recomputed SASA of every footprint residue in
+   `myostatin_target.pdb` (monomer) vs `myostatin_dimer.pdb`. Max occlusion 5 %
+   (Y38); everything else 0 %. **Quantitatively confirms the Step 1 monomer
+   decision** — the partner monomer covers no part of the type II epitope.
+
+**Hotspot selection.** Ranked by buried surface area (ΔSASA against ActRIIB),
+not by distance — a 4.5 Å cutoff scores a glancing backbone contact the same as
+an engulfed sidechain. Final set spans **both lobes** of the epitope (finger 1–2
+loop + finger 3 convex face) so a binder cannot satisfy it with half the surface:
+
+```
+ppi.hotspot_res=[A33,A34,A85,A87,A93,A95]
+```
+I33 (46 Å²/81 %), A34 (40/99), L85 (57/100), F87 (47/59), I93 (53/62), Y95 (78/50).
+Widest Cβ–Cβ separation 11.4 Å — comfortably spanned by a 45–60 residue binder.
+Conservative fallback if RFdiffusion struggles: `[A33,A34,A85,A87]`.
+
+**Correction to the provisional list.** The old provisional set was
+I33/A34/P35/M84/L85/Y86/F87. Three changes, all evidence-driven:
+- **M84 dropped** — buries **0.2 Å² (1 %)**. The 2026-08-10 carry-in note guessed
+  "7 % exposed, expect to drop it"; the SASA calculation confirms it outright.
+  It points into GDF8's own hydrophobic core and is unreachable.
+- **Y86 dropped** — it is **not** in the ActRIIB footprint at all. In 6MAC, Y86
+  faces the **type I (ALK5)** site, not type II. The provisional list had it on
+  the wrong receptor interface.
+- **I93, Y95 added** — both heavily buried against ActRIIB (53 and 78 Å²) and
+  absent from the provisional list; Y95 buries the most area of any residue in
+  the whole footprint.
+- **P35 demoted** to tier 2 (85 % buried but only 26 Å²).
+
+**Also produced:** `analysis/step2_knuckle_epitope.png` (ActRIIB cartoon over the
+epitope surface — hotspots orange, full footprint cyan),
+`analysis/step2_hotspots_surface.png` (receptor hidden), and the PyMOL session
+`analysis/pymol_sessions/step2_hotspots.pse`. New raw inputs:
+`data/raw/6MAC.cif`, `data/raw/7MRZ.cif`.
+
+**Carry-in for Step 3:** contig must express **both resolved segments** —
+`A1-50/A65-109`, never `A1-109` (14-residue disordered gap at 51–64). Hotspots
+are in mature numbering, chain A, matching `myostatin_target.pdb` exactly — no
+renumbering needed. Watch the 6 GB VRAM ceiling: 95 target residues + 45–60 binder.
+
+---
+
 ## Decision Update — 2026-08-12 (docs consolidation: `wiki/` merged into `docs/`)
 
 > ⚠️ **Supersedes every `wiki/…` path in the entries below.** The `wiki/` tree no
@@ -163,8 +493,11 @@ and check the knuckle finger loops are resolved in the apo structure.
 
 1. ~~**Structure tooling check**~~ — **DONE 2026-08-10.** `pymol-open-source` installed into the `esm` env; Biopython used for the prep script itself.
 2. ~~**Step 1 — Target prep**~~ — **DONE 2026-08-10.** See the 2026-08-10 session log above for the numbering scheme, the 51–64 gap, and the monomer decision.
-3. **Step 2 — Hotspots:** superpose the prepared target onto the GDF11 chain of **6MAC** (GDF11:ActRIIB:ALK5), list GDF8 residues within ~4.5 Å of ActRIIB, check GDF11→GDF8 conservation, finalize `hotspots/hotspot_residues.txt` (5–8 residues). (Recipe: `docs/methods/02-hotspots.md`.) Carry in: the provisional list I33/A34/P35/M84/L85/Y86/F87 is geometrically plausible but **Met84 is only 7 % exposed** — expect to drop it. No renumbering is needed; 5JI1 is already in mature numbering.
-4. **Step 3 — First RFdiffusion run:** 20 designs; the contig must express **both resolved segments — `A1-50/A65-109`, not `A1-109`** (14-residue disordered gap at 51–64). Use the Step 2 hotspots. `mamba activate rfdiffusion`, run from the `RFdiffusion/` clone. Watch the 6 GB VRAM limit — the target is 95 resolved residues, so budget for target + 45–60 binder.
+3. ~~**Step 2 — Hotspots**~~ — **DONE 2026-08-12.** See the 2026-08-12 session log above. Final set `[A33,A34,A85,A87,A93,A95]`; Met84 dropped as predicted, and Tyr86 dropped too (it sits on the type I interface).
+4. ~~**Step 3 — First RFdiffusion run**~~ — **DONE 2026-08-12.** 20 designs, 17 pass triage, 8 shortlisted. See the Step 3 session log above.
+5. ~~**Step 4 — ProteinMPNN**~~ — **DONE 2026-08-12.** 64 sequences. See the Step 4 session log above.
+6. ~~**Step 5 — ESMFold validation**~~ — **DONE 2026-08-12.** 58/64 self-consistent. See the Step 5 session log above.
+7. **Step 6 — Ranking and write-up:** rank the 58 survivors from `esm_validation/scores.tsv`, pick the top 3–5, copy to `results/top_designs/` with a summary README and figures. **Decide and state the ranking axis:** Step 3 (buried area) and Step 5 (designability) disagree — design_5 leads on interface, design_12/14 lead on refolding.
 
 **Quick start command next session:** `cd` into the project and run `make verify` to confirm all three envs are still healthy before doing anything.
 
@@ -738,14 +1071,14 @@ That sentence is technically precise, tells the full pipeline story, and demonst
 - [x] Infra: Repo restructured to scientific best-practices (README, LICENSE, CITATION.cff, Makefile, mkdocs, .gitignore, docs/ wiki, envs/, scripts/) — 2026-06-28.
 - [x] Infra: All three conda envs created + verified — 2026-06-28. **rfdiffusion GPU stack fully GREEN** (torch 2.3.1/dgl 2.3.0/e3nn 0.5.6, GPU matmul + dgl-graph-on-GPU + SE3Transformer import; RFdiffusion 1.1.0 + weights installed); proteinmpnn CPU; esm.
 - [x] Step 1: **Target prepared — 2026-08-10.** 5JI1 fetched → chain A extracted, HETATM/waters/MPD stripped, altlocs collapsed → `data/prepared/myostatin_target.pdb` (729 atoms, 95 resolved residues in 2 segments: **1–50, 65–109**). Numbering = mature (Asp1 = 1), no conversion needed. Mouse GDF8, 100 % identical to human mature domain. Monomer chosen (dimer buries no epitope surface). Script: `scripts/01_prepare_target.py`.
-- [~] Step 2: Hotspot methodology + provisional knuckle list written (THEORY done: **homology transfer source changed 1NYS → 6MAC** GDF11:ActRIIB on 2026-07-07; provisional A33/34/35/85/86/87 to re-confirm). Superposition verification pending.
+- [x] Step 2: **Hotspots finalized — 2026-08-12.** Footprint transferred from **6MAC** *and* corroborated with **7MRZ** (identical 21-residue consensus). 20/21 contacts identical GDF11↔GDF8 (only Q91→E, conservative); zero dimer occlusion. Final: **`ppi.hotspot_res=[A33,A34,A85,A87,A93,A95]`** → `hotspots/hotspot_residues.txt`. Provisional list corrected: **M84 dropped** (buries 0.2 Å²), **Y86 dropped** (it is on the *type I*/ALK5 interface, not type II), **I93+Y95 added**. Script: `scripts/02_hotspots.py`.
 - [x] Step 3: RFDiffusion env fully installed + GPU-verified (setup script run; RFdiffusion 1.1.0 + weights present). Ready to generate backbones.
-- [ ] Step 3: 20 backbone designs generated
-- [ ] Step 3: Visual inspection in PyMOL, top designs selected
-- [x] Step 4: ProteinMPNN environment installed (CPU torch) — clone ProteinMPNN repo when running.
-- [ ] Step 4: Sequences generated for top backbones
+- [x] Step 3: **20 backbone designs generated — 2026-08-12.** `Complex_base_ckpt.pt`, T=50, noise_scale 0, 0.76 min/design, no OOM. Contig `[A1-50/A65-109/0 45-60]`, hotspots from Step 2. Script: `scripts/03_rfdiffusion.sh`.
+- [x] Step 3: **Triaged + inspected — 2026-08-12.** 17/20 PASS; all 20 dock the correct epitope (5–6 of 6 hotspots). 3 rejected as extended (single-helix, Rg ≈2.3× folded expectation). **Shortlist of 8:** design_5, 18, 15, 14, 12, 11, 4, 9 — all 6/6 hotspots, 370–469 Å² buried, 88–95 % helical. Key gotcha: output is **backbone-only**, so naive scoring calls every design a floater — see the session log. Scripts: `scripts/03b_triage_backbones.py`, `scripts/03c_render_designs.py`.
+- [x] Step 4: ProteinMPNN environment installed (CPU torch); **repo cloned 2026-08-12** (weights ship with it).
+- [x] Step 4: **Sequences generated — 2026-08-12.** 64 sequences (8 backbones × 8) at T=0.1, chain B designed / chain A fixed, Cys omitted. Diversity healthy (66 % mean pairwise identity), no Cys, scores 0.957–1.225. **Hydrophobic gradient 0.33 → 0.46 → 0.57** (whole binder → epitope face → hotspot ring) confirms the sequences match the structural intent. Flag-name gotcha: it is `--pdb_path_chains`, **not** `--pdb_path_chains_to_design`. Scripts: `scripts/04_proteinmpnn.sh`, `scripts/04b_analyze_sequences.py`.
 - [x] Step 5: ESMFold validation env installed (API client + TMalign)
-- [ ] Step 5: ESMFold validation run for all sequences
+- [x] Step 5: **ESMFold validation run — 2026-08-12.** All 64 sequences refolded via the ESM Atlas API; **58/64 (91 %) self-consistent** (RMSD < 2 Å, pLDDT ≥ 70, TM ≥ 0.5, coverage ≥ 90 %). Best `design_12_s4` at **0.40 Å**. Gotchas: API returns **no pTM** (substituted pLDDT + TM-score), **pLDDT on a 0–1 scale**, ~⅓ of calls 504. **Coverage filter is essential** — it caught 4 false passes where TMalign aligned only 30/52 residues at a flattering 0.55 Å. **MPNN score does not predict refolding** (Spearman −0.055 vs RMSD). Script: `scripts/05_esmfold.py`.
 - [ ] Step 6: Scoring table built, top designs ranked
 - [ ] Step 6: Final designs inspected in PyMOL
 
