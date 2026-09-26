@@ -17,6 +17,7 @@ RUN        := conda run --no-capture-output -n              # run a command insi
 .PHONY: help \
         envs envs-rfdiffusion envs-proteinmpnn envs-esm envs-docs setup-rfdiffusion \
         gpu-check verify verify-rfdiffusion verify-proteinmpnn verify-esm verify-docs \
+        dashboard dashboard-frames dashboard-gifs dashboard-html clean-dashboard \
         docs docs-build clean-docs
 
 help:  ## Show this help (the list of targets)
@@ -63,6 +64,23 @@ verify-esm:  ## Check the esm env (client libs + TMalign)
 verify-docs:  ## Check the docs env and that the site builds clean
 	$(ACTIVATE) && $(RUN) docs mkdocs --version
 	$(ACTIVATE) && $(RUN) docs mkdocs build --strict --site-dir /tmp/mkdocs-verify && rm -rf /tmp/mkdocs-verify && echo "docs OK | strict build passes"
+
+# --- Dashboard ---------------------------------------------------------------
+# Three steps in two different envs: PyMOL lives in esm, Pillow lives in
+# rfdiffusion, so the rendering and the GIF encoding cannot share one recipe.
+dashboard: dashboard-frames dashboard-gifs dashboard-html  ## Build the pipeline dashboard (analysis/dashboard/dashboard.html)
+
+dashboard-frames:  ## Ray-trace the spinning-molecule frames (PyMOL, esm env)
+	$(ACTIVATE) && $(RUN) esm pymol -cq scripts/07_render_spins.py
+
+dashboard-gifs:  ## Encode the frames into looping GIFs (Pillow, rfdiffusion env)
+	$(ACTIVATE) && $(RUN) rfdiffusion python scripts/07b_frames_to_gif.py
+
+dashboard-html:  ## Recompute the numbers and build the standalone page (esm env)
+	$(ACTIVATE) && $(RUN) esm python scripts/07c_build_dashboard.py
+
+clean-dashboard:  ## Remove the generated dashboard, frames and GIFs
+	rm -rf analysis/dashboard/
 
 # --- Docs --------------------------------------------------------------------
 docs:  ## Serve the documentation site locally at http://127.0.0.1:8000

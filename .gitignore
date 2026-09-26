@@ -26,6 +26,10 @@ proteinmpnn/logs/*
 !proteinmpnn/logs/.gitkeep
 esm_validation/predicted_structures/*
 !esm_validation/predicted_structures/.gitkeep
+# Dashboard build products — regenerable with `make dashboard` from the
+# committed scripts, the template and the committed backbones.
+analysis/dashboard/
+
 analysis/pymol_sessions/*
 !analysis/pymol_sessions/.gitkeep
 

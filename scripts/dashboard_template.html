@@ -1,0 +1,797 @@
+<title>Myostatin Binder Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* ---- tokens: dark-first (the renders are lit for a black ground) ---- */
+:root{
+  color-scheme: dark;
+  --ground:#0b0e14; --surface:#121823; --surface-2:#19202d; --line:#263041;
+  --ink:#e9eef7; --ink-2:#9fadc2; --ink-3:#6f7d94;
+  --series-1:#3987e5; --series-2:#e66767; --hotspot:#d95926;
+  --good:#45b95b; --warn:#d9a13a;
+  --grid:#222b3a;
+  --plate:#0b0e14;            /* never themed: the renders' own background */
+  --shadow:0 1px 2px rgba(0,0,0,.5);
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --line:#dde2eb;
+    --ink:#10151f; --ink-2:#515b6d; --ink-3:#737d8f;
+    --series-1:#2a78d6; --series-2:#d33f3e; --hotspot:#c9541f;
+    --good:#1a7f37; --warn:#8a5a00;
+    --grid:#e6eaf1;
+    --shadow:0 1px 2px rgba(16,21,31,.07);
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#f4f6f9; --surface:#ffffff; --surface-2:#eef1f6; --line:#dde2eb;
+  --ink:#10151f; --ink-2:#515b6d; --ink-3:#737d8f;
+  --series-1:#2a78d6; --series-2:#d33f3e; --hotspot:#c9541f;
+  --good:#1a7f37; --warn:#8a5a00;
+  --grid:#e6eaf1;
+  --shadow:0 1px 2px rgba(16,21,31,.07);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:400 14px/1.55 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1240px; margin:0 auto; padding-inline:20px; padding-block:0 56px}
+a{color:var(--series-1)}
+h1,h2,h3{font-family:var(--serif); font-weight:600; text-wrap:balance; margin:0}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+.masthead{padding-block:40px 28px; border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); margin:0 0 14px
+}
+h1{font-size:clamp(30px,4.4vw,46px); line-height:1.08; letter-spacing:-.015em}
+.lede{
+  margin:14px 0 0; max-width:62ch; color:var(--ink-2); font-size:15.5px
+}
+.runline{
+  margin-top:18px; display:flex; flex-wrap:wrap; gap:8px 18px;
+  font-family:var(--mono); font-size:11.5px; color:var(--ink-3)
+}
+.runline b{color:var(--ink-2); font-weight:500}
+
+/* ---- headline figures ---- */
+.figures{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+  gap:1px; background:var(--line); border:1px solid var(--line);
+  border-radius:3px; overflow:hidden; margin-top:26px
+}
+.fig{background:var(--surface); padding:14px 16px 13px}
+.fig .n{font-family:var(--mono); font-size:25px; line-height:1.1; letter-spacing:-.02em}
+.fig .n small{font-size:14px; color:var(--ink-3); letter-spacing:0}
+.fig .k{
+  font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); margin-top:6px
+}
+.fig.open .n{color:var(--hotspot)}
+
+/* ---- layout ---- */
+.cols{display:grid; grid-template-columns:minmax(0,1fr) 288px; gap:34px; margin-top:34px; align-items:start}
+@media (max-width:1000px){ .cols{grid-template-columns:minmax(0,1fr); gap:28px} }
+
+section{margin-top:34px}
+section:first-child{margin-top:0}
+.shead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+.shead h2{font-size:21px; letter-spacing:-.01em}
+.shead .tag{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3)
+}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:4px}
+.panel-pad{padding:18px}
+.note{color:var(--ink-2); font-size:13px; margin:12px 0 0; max-width:74ch}
+.note b{color:var(--ink); font-weight:600}
+
+/* ---- flow figure ---- */
+figure{margin:0}
+figcaption{color:var(--ink-3); font-size:12px; margin-top:10px; max-width:74ch}
+svg.flow{display:block; width:100%; height:auto; max-width:100%}
+.flow .lbl{font:500 12px var(--mono); fill:var(--ink-2)}
+.flow .val{font:500 15px var(--mono); fill:var(--ink)}
+.flow .desc{font:400 11.5px var(--sans); fill:var(--ink-3)}
+.flow .step{font:400 11px var(--sans); fill:var(--ink-3)}
+.flow .bar{fill:var(--series-1); fill-opacity:.17; stroke:var(--series-1); stroke-width:1}
+.flow .bar.open{fill:var(--hotspot); fill-opacity:.13; stroke:var(--hotspot); stroke-dasharray:4 3}
+.flow .arw{stroke:var(--ink-3); stroke-width:1.2; fill:none}
+
+/* ---- stage spine ---- */
+.stage{
+  display:grid; grid-template-columns:34px minmax(150px,200px) minmax(0,1fr);
+  gap:16px; padding:15px 16px; border-bottom:1px solid var(--line)
+}
+.stage:last-child{border-bottom:0}
+.stage.is-open{background:var(--surface-2)}
+.stage .idx{font-family:var(--mono); font-size:12px; color:var(--ink-3); padding-top:2px}
+.stage h3{font-size:15.5px; font-family:var(--sans); font-weight:600; letter-spacing:-.005em}
+.stage .tool{font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-top:3px}
+.metrics{display:flex; flex-wrap:wrap; gap:14px 22px}
+.metric .mv{font-family:var(--mono); font-size:14.5px; color:var(--ink); font-variant-numeric:tabular-nums}
+.metric .mv .u{font-size:11.5px; color:var(--ink-3)}
+.metric .mk{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); margin-top:2px}
+.stage .sub{font-size:12.5px; color:var(--ink-2); margin-top:11px; max-width:70ch}
+.chip{
+  display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  text-transform:uppercase; padding:2px 7px; border-radius:2px; border:1px solid currentColor;
+  margin-top:8px
+}
+.chip.done{color:var(--good)}
+.chip.open{color:var(--hotspot)}
+
+/* ---- charts ---- */
+.chart-wrap{position:relative}
+svg.chart{display:block; width:100%; height:auto}
+.chart .ax{stroke:var(--line); stroke-width:1}
+.chart .gl{stroke:var(--grid); stroke-width:1}
+.chart .tk{font:400 11px var(--mono); fill:var(--ink-3)}
+.chart .at{font:400 11.5px var(--sans); fill:var(--ink-2)}
+.chart .cut{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:5 4}
+.chart .cutlbl{font:400 10.5px var(--mono); fill:var(--ink-3)}
+.chart .callout{font:400 12.5px var(--sans); fill:var(--ink-2)}
+.chart .callout tspan.big{font:500 13.5px var(--mono); fill:var(--ink)}
+.pt{stroke:var(--surface); stroke-width:1.5}
+.pt.ok{fill:var(--series-1)}
+.pt.bad{fill:var(--series-2)}
+.ring{fill:none; stroke:var(--ink); stroke-width:1.5; opacity:.65}
+.legend{display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:12px; font-size:12px; color:var(--ink-2)}
+.legend span{display:inline-flex; align-items:center; gap:7px}
+.legend svg{display:block; overflow:visible}
+.tip{
+  position:absolute; pointer-events:none; opacity:0; transition:opacity .09s;
+  background:var(--surface-2); border:1px solid var(--line); border-radius:3px;
+  box-shadow:var(--shadow); padding:7px 9px; font-family:var(--mono); font-size:11.5px;
+  color:var(--ink); white-space:nowrap; z-index:5
+}
+.tip.on{opacity:1}
+.tip .t-name{color:var(--series-1)}
+.tip .t-bad{color:var(--series-2)}
+details.tbl{margin-top:14px}
+details.tbl summary{
+  cursor:pointer; font-size:12px; color:var(--ink-2); font-family:var(--mono);
+  padding:4px 0
+}
+details.tbl summary:focus-visible{outline:2px solid var(--series-1); outline-offset:2px}
+.scrollx{overflow-x:auto; margin-top:10px}
+
+/* ---- tables ---- */
+table{border-collapse:collapse; width:100%; font-size:13px}
+th,td{padding:9px 11px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap}
+th{
+  font:500 10.5px var(--sans); letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-3); border-bottom:1px solid var(--line)
+}
+td.num{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+th.num{text-align:right}
+tbody tr:last-child td{border-bottom:0}
+tr.lead-interface td{background:color-mix(in srgb, var(--hotspot) 9%, transparent)}
+tr.lead-design td{background:color-mix(in srgb, var(--series-1) 9%, transparent)}
+.bar-cell{display:flex; align-items:center; gap:9px; justify-content:flex-end}
+.bar-cell .track{width:74px; height:7px; background:var(--surface-2); border-radius:1px; overflow:hidden}
+.bar-cell .fill{display:block; height:100%; background:var(--series-1); border-radius:1px}
+.pill{
+  display:inline-block; font-family:var(--mono); font-size:11.5px; padding:1px 7px;
+  border-radius:2px; border:1px solid currentColor
+}
+.pill.full{color:var(--good)}
+.pill.part{color:var(--warn)}
+.sorter{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+.sorter button{
+  font:500 11.5px var(--sans); color:var(--ink-2); background:var(--surface);
+  border:1px solid var(--line); border-radius:3px; padding:6px 11px; cursor:pointer
+}
+.sorter button[aria-pressed="true"]{
+  color:var(--ink); border-color:var(--series-1);
+  background:color-mix(in srgb, var(--series-1) 12%, var(--surface))
+}
+.sorter button:focus-visible{outline:2px solid var(--series-1); outline-offset:2px}
+
+/* ---- render rail ---- */
+.rail{position:sticky; top:calc(env(safe-area-inset-top, 0px) + 16px)}
+@media (max-width:1000px){ .rail{position:static} }
+.rail-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px}
+.rail-head h2{font-size:17px}
+#motion{
+  font:500 11px var(--mono); color:var(--ink-2); background:var(--surface);
+  border:1px solid var(--line); border-radius:3px; padding:5px 9px; cursor:pointer
+}
+#motion:focus-visible{outline:2px solid var(--series-1); outline-offset:2px}
+.views{display:grid; gap:14px}
+@media (max-width:1000px){ .views{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))} }
+.view{background:var(--surface); border:1px solid var(--line); border-radius:4px; overflow:hidden}
+.plate{background:var(--plate); line-height:0}
+.plate img{width:100%; height:auto; display:block; max-width:100%}
+.view .cap{padding:11px 13px 13px}
+.view .cap h3{font-family:var(--sans); font-size:13.5px; font-weight:600; letter-spacing:-.005em}
+.view .cap p{margin:5px 0 0; font-size:12px; color:var(--ink-2)}
+.view .cap .stagetag{
+  font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); display:block; margin-bottom:5px
+}
+.swatches{
+  background:var(--plate); border:1px solid var(--line); border-radius:4px;
+  padding:12px 13px; display:grid; gap:7px
+}
+.swatches .sw{display:flex; align-items:center; gap:9px; font-size:11.5px; color:#c8d2e2}
+.swatches i{width:11px; height:11px; border-radius:2px; display:block; flex:none}
+.swatches .h{
+  font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+  color:#7b8799; margin-bottom:2px
+}
+
+/* ---- footer ---- */
+footer{margin-top:44px; padding-top:20px; border-top:1px solid var(--line); color:var(--ink-3); font-size:12px}
+footer p{margin:0 0 7px; max-width:80ch}
+footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
+
+@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">De novo binder design · GDF-8 type II knuckle epitope</p>
+  <h1>Myostatin Binder Pipeline</h1>
+  <p class="lede">
+    Five stages run, one open. Twenty diffused backbones narrowed to eight, sixty-four
+    designed sequences refolded, fifty-eight self-consistent — and two metrics that
+    disagree about which design leads.
+  </p>
+  <div class="runline">
+    <span>target <b>5JI1</b> chain A</span>
+    <span>hotspots <b>A33 A34 A85 A87 A93 A95</b></span>
+    <span>GPU <b>RTX 4050, 6 GB</b></span>
+    <span>steps 1–5 <b>complete</b></span>
+    <span>step 6 <b>open</b></span>
+  </div>
+
+  <div class="figures">
+    <div class="fig"><div class="n" id="f-designs">20</div><div class="k">backbones diffused</div></div>
+    <div class="fig"><div class="n" id="f-short">8</div><div class="k">shortlisted</div></div>
+    <div class="fig"><div class="n" id="f-seqs">64</div><div class="k">sequences designed</div></div>
+    <div class="fig"><div class="n" id="f-sc">58 <small>/ 64</small></div><div class="k">self-consistent</div></div>
+    <div class="fig"><div class="n" id="f-best">0.40 <small>Å</small></div><div class="k">best Cα-RMSD</div></div>
+    <div class="fig open"><div class="n">3–5</div><div class="k">to pick in step 6</div></div>
+  </div>
+</header>
+
+<div class="cols">
+<div class="col-main">
+
+  <section id="flow">
+    <div class="shead"><h2>What survived each filter</h2><span class="tag">Steps 3 → 5</span></div>
+    <div class="panel panel-pad">
+      <figure>
+        <svg class="flow" viewBox="0 0 720 330" role="img"
+             aria-label="Funnel: 20 diffused backbones, 17 pass triage, 8 shortlisted; each yields 8 ProteinMPNN sequences for 64 total, of which 58 are self-consistent and carry into the open ranking step.">
+          <defs>
+            <marker id="ah" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+          <g color="var(--ink-3)">
+            <text class="lbl" x="118" y="45" text-anchor="end">RFdiffusion</text>
+            <rect class="bar" x="132" y="28" width="300" height="24" rx="2"></rect>
+            <text class="val" x="144" y="45">20</text>
+            <text class="desc" x="442" y="45">backbones diffused · 0.76 min each</text>
+            <line class="arw" x1="140" y1="56" x2="140" y2="70" marker-end="url(#ah)"></line>
+            <text class="step" x="152" y="68">reject extended chains (Rg &gt; 1.5 × folded expectation)</text>
+
+            <text class="lbl" x="118" y="93" text-anchor="end">Triage</text>
+            <rect class="bar" x="132" y="76" width="255" height="24" rx="2"></rect>
+            <text class="val" x="144" y="93">17</text>
+            <text class="desc" x="397" y="93">pass · 3 rejected, Rg ratio 2.05–2.35</text>
+            <line class="arw" x1="140" y1="104" x2="140" y2="118" marker-end="url(#ah)"></line>
+            <text class="step" x="152" y="116">keep the 8 with all six hotspots and the largest buried area</text>
+
+            <text class="lbl" x="118" y="141" text-anchor="end">Shortlist</text>
+            <rect class="bar" x="132" y="124" width="120" height="24" rx="2"></rect>
+            <text class="val" x="144" y="141">8</text>
+            <text class="desc" x="262" y="141">shortlisted · 6/6 hotspots, 370–469 Å² buried</text>
+            <line class="arw" x1="140" y1="152" x2="140" y2="166" marker-end="url(#ah)"></line>
+            <text class="step" x="152" y="164">ProteinMPNN — 8 sequences per backbone at T = 0.1</text>
+
+            <text class="lbl" x="118" y="189" text-anchor="end">ProteinMPNN</text>
+            <rect class="bar" x="132" y="172" width="300" height="24" rx="2"></rect>
+            <text class="val" x="144" y="189">64</text>
+            <text class="desc" x="442" y="189">sequences · 52–60 aa, no cysteine</text>
+            <line class="arw" x1="140" y1="200" x2="140" y2="214" marker-end="url(#ah)"></line>
+            <text class="step" x="152" y="212">ESMFold refold, TMalign back onto the parent backbone</text>
+
+            <text class="lbl" x="118" y="237" text-anchor="end">ESMFold</text>
+            <rect class="bar" x="132" y="220" width="272" height="24" rx="2"></rect>
+            <text class="val" x="144" y="237">58</text>
+            <text class="desc" x="414" y="237">self-consistent · 6 fail on coverage</text>
+            <line class="arw" x1="140" y1="248" x2="140" y2="262" marker-end="url(#ah)"></line>
+            <text class="step" x="152" y="260">rank, then copy the top 3–5 to results/top_designs/</text>
+
+            <text class="lbl" x="118" y="285" text-anchor="end">Step 6</text>
+            <rect class="bar open" x="132" y="268" width="272" height="24" rx="2"></rect>
+            <text class="val" x="144" y="285">58</text>
+            <text class="desc" x="414" y="285">candidates awaiting a ranking axis</text>
+            <text class="step" x="132" y="315">Bar width is proportional within each unit. Backbones (top three) and sequences
+              (bottom three) are different units, scaled separately.</text>
+          </g>
+        </svg>
+        <figcaption>
+          Each arrow carries the filter that removed the difference. The one place the count
+          goes <em>up</em> is ProteinMPNN, which turns 8 backbones into 64 sequences.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="stages">
+    <div class="shead"><h2>Stage by stage</h2><span class="tag">6 steps · 5 executed</span></div>
+    <div class="panel">
+
+      <div class="stage">
+        <div class="idx">01</div>
+        <div>
+          <h3>Target preparation</h3>
+          <div class="tool">Biopython · PyMOL · 2026-08-10</div>
+          <span class="chip done">done</span>
+        </div>
+        <div>
+          <div class="metrics">
+            <div class="metric"><div class="mv">5JI1</div><div class="mk">structure</div></div>
+            <div class="metric"><div class="mv">95 <span class="u">/ 109</span></div><div class="mk">residues resolved</div></div>
+            <div class="metric"><div class="mv">51–64</div><div class="mk">disordered gap</div></div>
+            <div class="metric"><div class="mv">0</div><div class="mk">HETATM kept</div></div>
+            <div class="metric"><div class="mv">603 <span class="u">Å²</span></div><div class="mk">dimer burial, none at epitope</div></div>
+          </div>
+          <p class="sub">
+            Monomer chosen over the dimer on evidence, not convenience: hotspot SASA is identical
+            in both, so the partner chain costs 109 residues of VRAM and buys nothing. The gap sits
+            33–46 Å away at the type I site, so the contig must read <code>A1-50/A65-109</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="idx">02</div>
+        <div>
+          <h3>Hotspot identification</h3>
+          <div class="tool">homology transfer · 2026-08-12</div>
+          <span class="chip done">done</span>
+        </div>
+        <div>
+          <div class="metrics">
+            <div class="metric"><div class="mv">2</div><div class="mk">complexes used</div></div>
+            <div class="metric"><div class="mv">0.70 / 0.99 <span class="u">Å</span></div><div class="mk">superposition, 81 res</div></div>
+            <div class="metric"><div class="mv">21</div><div class="mk">footprint residues</div></div>
+            <div class="metric"><div class="mv">20 <span class="u">/ 21</span></div><div class="mk">conserved GDF11↔GDF8</div></div>
+            <div class="metric"><div class="mv">6</div><div class="mk">hotspots kept</div></div>
+            <div class="metric"><div class="mv">11.4 <span class="u">Å</span></div><div class="mk">widest Cβ–Cβ span</div></div>
+          </div>
+          <p class="sub">
+            Footprint read off 6MAC (2.34 Å) and 7MRZ (3.00 Å), then ranked by buried area rather
+            than distance. Two provisional picks died here: <b>M84</b> buries 0.2 Å² and points into
+            the core, and <b>Y86</b> faces the type I receptor, not ActRIIB.
+          </p>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="idx">03</div>
+        <div>
+          <h3>Backbone diffusion</h3>
+          <div class="tool">RFdiffusion · Complex_base_ckpt · 2026-08-12</div>
+          <span class="chip done">done</span>
+        </div>
+        <div>
+          <div class="metrics">
+            <div class="metric"><div class="mv">20</div><div class="mk">designs</div></div>
+            <div class="metric"><div class="mv">0.76 <span class="u">min/design</span></div><div class="mk">on 6 GB</div></div>
+            <div class="metric"><div class="mv">17</div><div class="mk">pass triage</div></div>
+            <div class="metric"><div class="mv">10 <span class="u">/ 20</span></div><div class="mk">hit all six hotspots</div></div>
+            <div class="metric"><div class="mv">205–472 <span class="u">Å²</span></div><div class="mk">buried area</div></div>
+            <div class="metric"><div class="mv">0.73–0.97</div><div class="mk">helix fraction</div></div>
+          </div>
+          <p class="sub">
+            Calibrated against the real receptor interface rather than an invented threshold: ActRIIB:GDF11
+            scores <b>293 Å²</b> in the same backbone+CB representation (697 Å² full-atom), so these are
+            lower bounds. Three designs were rejected as extended sticks — contact counts alone passed them.
+          </p>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="idx">04</div>
+        <div>
+          <h3>Sequence design</h3>
+          <div class="tool">ProteinMPNN v_48_020 · 2026-08-12</div>
+          <span class="chip done">done</span>
+        </div>
+        <div>
+          <div class="metrics">
+            <div class="metric"><div class="mv">64</div><div class="mk">sequences (8 × 8)</div></div>
+            <div class="metric"><div class="mv">~40 <span class="u">s</span></div><div class="mk">total, CPU</div></div>
+            <div class="metric"><div class="mv">0.957–1.225</div><div class="mk">MPNN score range</div></div>
+            <div class="metric"><div class="mv">66 <span class="u">%</span></div><div class="mk">mean pairwise identity</div></div>
+            <div class="metric"><div class="mv">0</div><div class="mk">cysteines</div></div>
+            <div class="metric"><div class="mv">−7 … +4</div><div class="mk">net charge</div></div>
+          </div>
+          <p class="sub">
+            The headline is the hydrophobic gradient, not the score: <b>0.33</b> across the whole binder →
+            <b>0.46</b> on the epitope-facing side → <b>0.57</b> on the hotspot-contacting ring. Apolar residues
+            land exactly where the design buries surface. The sequences are E/K/A-rich, a known ProteinMPNN
+            bias and a real liability for expression.
+          </p>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="idx">05</div>
+        <div>
+          <h3>Refold validation</h3>
+          <div class="tool">ESMFold (ESM Atlas API) · TMalign · 2026-08-12</div>
+          <span class="chip done">done</span>
+        </div>
+        <div>
+          <div class="metrics">
+            <div class="metric"><div class="mv">64</div><div class="mk">refolded</div></div>
+            <div class="metric"><div class="mv">58 <span class="u">(91 %)</span></div><div class="mk">self-consistent</div></div>
+            <div class="metric"><div class="mv">0.40 <span class="u">Å</span></div><div class="mk">best, design_12_s4</div></div>
+            <div class="metric"><div class="mv" id="m-under">10</div><div class="mk">under 0.50 Å</div></div>
+            <div class="metric"><div class="mv" id="m-rho">−0.06</div><div class="mk">ρ, MPNN vs RMSD</div></div>
+          </div>
+          <p class="sub">
+            Pass = RMSD &lt; 2 Å, mean pLDDT ≥ 70, TM ≥ 0.5, coverage ≥ 0.90. The endpoint returns a bare PDB
+            with <b>no pTM</b>, so the documented pTM filter was replaced and stated rather than dropped. The
+            coverage term is what earns its place: it cut design_5 from 7/8 to 3/8 by catching alignments over
+            30 of 52 residues that reported a flattering 0.55 Å.
+          </p>
+        </div>
+      </div>
+
+      <div class="stage is-open">
+        <div class="idx">06</div>
+        <div>
+          <h3>Ranking and write-up</h3>
+          <div class="tool">not yet run</div>
+          <span class="chip open">open</span>
+        </div>
+        <div>
+          <div class="metrics">
+            <div class="metric"><div class="mv">58</div><div class="mk">candidates</div></div>
+            <div class="metric"><div class="mv">8</div><div class="mk">parent backbones</div></div>
+            <div class="metric"><div class="mv">3–5</div><div class="mk">to select</div></div>
+            <div class="metric"><div class="mv">—</div><div class="mk">ranking axis</div></div>
+          </div>
+          <p class="sub">
+            The one decision left, and the two upstream steps disagree on it. Step 3 ranks by buried
+            interface and puts <b>design_5</b> first; Step 5 ranks by designability and puts design_5 last.
+            Whichever axis is chosen has to be stated in the write-up.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="corr">
+    <div class="shead"><h2>Why step 5 is not optional</h2><span class="tag">n = 64 sequences</span></div>
+    <div class="panel panel-pad">
+      <div class="chart-wrap">
+        <svg class="chart" id="scatter" viewBox="0 0 680 392" role="img"
+             aria-label="Scatter of ProteinMPNN score against Cα-RMSD for 64 sequences, showing no relationship: Spearman rho is −0.06."></svg>
+        <div class="tip" id="tip" role="status" aria-live="polite"></div>
+      </div>
+      <div class="legend">
+        <span><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5" fill="var(--series-1)"></circle></svg> self-consistent (58)</span>
+        <span><svg width="13" height="13" viewBox="0 0 13 13"><polygon points="6.5,1.5 12,11 1,11" fill="var(--series-2)"></polygon></svg> failed (6)</span>
+        <span><svg width="15" height="13" viewBox="0 0 15 13"><circle cx="7.5" cy="6.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".65"></circle></svg> the two extremes named below</span>
+      </div>
+      <p class="note">
+        If the ProteinMPNN score predicted refold accuracy, this cloud would slope. It does not:
+        <b>ρ = <span id="rho-inline">−0.06</span></b>. The best-scoring sequence of all 64,
+        <b>design_15_s4</b> (0.957), refolds at <b>1.65 Å</b>; the best refold, <b>design_12_s4</b>
+        at <b>0.40 Å</b>, ranks only <b>41st of 64</b> by score. Mean pLDDT does a little better
+        (ρ = <span id="rho-plddt">−0.31</span>) but nowhere near enough to rank on.
+      </p>
+      <details class="tbl">
+        <summary>Show all 64 values as a table</summary>
+        <div class="scrollx"><table id="pointtable"></table></div>
+      </details>
+    </div>
+  </section>
+
+  <section id="decision">
+    <div class="shead"><h2>The open decision</h2><span class="tag">Step 6 · 8 backbones</span></div>
+    <div class="panel panel-pad">
+      <div class="sorter" role="group" aria-label="Ranking axis">
+        <button type="button" id="by-interface" aria-pressed="true">Rank by interface (step 3)</button>
+        <button type="button" id="by-design" aria-pressed="false">Rank by designability (step 5)</button>
+      </div>
+      <div class="scrollx"><table id="decisiontable"></table></div>
+      <p class="note" id="axis-note"></p>
+    </div>
+  </section>
+
+</div>
+
+<aside class="rail">
+  <div class="rail-head">
+    <h2>Renders</h2>
+    <button type="button" id="motion" aria-pressed="false">Pause</button>
+  </div>
+  <div class="views">
+
+    <div class="view">
+      <div class="plate"><img id="v-epitope" alt="Myostatin surface rotating, with the ActRIIB footprint in pale cyan and the six hotspot residues in orange."
+        src="{{GIF_epitope}}" data-still="{{STILL_epitope}}" width="340" height="340"></div>
+      <div class="cap">
+        <span class="stagetag">Steps 01–02</span>
+        <h3>The epitope</h3>
+        <p>5JI1 chain A. Pale cyan is the 21-residue ActRIIB footprint; orange is the six hotspots handed to RFdiffusion.</p>
+      </div>
+    </div>
+
+    <div class="view">
+      <div class="plate"><img id="v-design_5" alt="design_5 helical hairpin rotating against the myostatin epitope."
+        src="{{GIF_design_5}}" data-still="{{STILL_design_5}}" width="340" height="340"></div>
+      <div class="cap">
+        <span class="stagetag">Step 03 · interface leader</span>
+        <h3>design_5</h3>
+        <p>469 Å² buried, 12 contacts, 6/6 hotspots — the widest interface of the twenty. Only 3 of its 8 sequences refold.</p>
+      </div>
+    </div>
+
+    <div class="view">
+      <div class="plate"><img id="v-design_12" alt="design_12 helical bundle rotating against the myostatin epitope."
+        src="{{GIF_design_12}}" data-still="{{STILL_design_12}}" width="340" height="340"></div>
+      <div class="cap">
+        <span class="stagetag">Step 03 · designability leader</span>
+        <h3>design_12</h3>
+        <p>402 Å² buried and 8 contacts — a smaller interface, but all 8 sequences refold and one hits 0.40 Å.</p>
+      </div>
+    </div>
+
+    <div class="view">
+      <div class="plate"><img id="v-refold" alt="ESMFold prediction in green superimposed on the grey RFdiffusion backbone, rotating."
+        src="{{GIF_refold}}" data-still="{{STILL_refold}}" width="340" height="340"></div>
+      <div class="cap">
+        <span class="stagetag">Step 05 · the check</span>
+        <h3>design_12_s4 refold</h3>
+        <p>ESMFold prediction (green) on its parent backbone (grey): 0.40 Å over 56 residues by cealign.</p>
+      </div>
+    </div>
+
+    <div class="swatches">
+      <div class="h">Render key</div>
+      <div class="sw"><i style="background:#b3b3b3"></i> myostatin surface</div>
+      <div class="sw"><i style="background:#d0ffff"></i> ActRIIB footprint, 21 residues</div>
+      <div class="sw"><i style="background:#ff8c00"></i> hotspots A33 A34 A85 A87 A93 A95</div>
+      <div class="sw"><i style="background:#0080ff"></i> designed binder</div>
+      <div class="sw"><i style="background:#33ff33"></i> ESMFold prediction</div>
+    </div>
+
+  </div>
+</aside>
+</div>
+
+<footer>
+  <p><b>Provenance.</b> Every figure on this page is recomputed from the run outputs, not copied from the
+  session log: <code>esm_validation/scores.tsv</code> (64 rows), <code>rfdiffusion/outputs/triage.tsv</code>
+  (20 rows), <code>hotspots/hotspot_residues.txt</code>. Correlations are Spearman on ranks, n = 64.
+  Rebuild with <code>make dashboard</code>.</p>
+  <p><b>Renders.</b> PyMOL 3.1 headless, 36 frames per 360° turn, ray-traced at 340 px on the same
+  colour conventions as <code>scripts/03c_render_designs.py</code>. The step 5 overlay uses
+  <code>cealign</code>, never <code>align</code> — the backbone is poly-glycine.</p>
+</footer>
+
+</div>
+
+<script>
+const DATA = {{DATA}};
+
+/* ---------- headline figures from the data, not hand-typed ---------- */
+const T = DATA.totals;
+document.getElementById('f-designs').textContent = T.designs_generated;
+document.getElementById('f-short').textContent = T.designs_shortlisted;
+document.getElementById('f-seqs').textContent = T.sequences;
+document.getElementById('f-sc').innerHTML = T.self_consistent + ' <small>/ ' + T.sequences + '</small>';
+document.getElementById('f-best').innerHTML = T.best_rmsd.toFixed(2) + ' <small>Å</small>';
+document.getElementById('m-under').textContent = T.under_half_angstrom;
+
+const fmtRho = v => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(2);
+document.getElementById('m-rho').textContent = fmtRho(DATA.correlations.mpnn_rmsd);
+document.getElementById('rho-inline').textContent = fmtRho(DATA.correlations.mpnn_rmsd);
+document.getElementById('rho-plddt').textContent = fmtRho(DATA.correlations.plddt_rmsd);
+
+/* ---------- scatter: MPNN score vs refold RMSD ---------- */
+(function scatter(){
+  const svg = document.getElementById('scatter');
+  const W = 680, H = 392, L = 64, R = 18, Tm = 18, B = 56;
+  const x0 = L, x1 = W - R, y0 = Tm, y1 = H - B;
+  const xd = [0.93, 1.25], yd = [0.2, 2.7];
+  const X = v => x0 + (v - xd[0]) / (xd[1] - xd[0]) * (x1 - x0);
+  const Y = v => y1 - (v - yd[0]) / (yd[1] - yd[0]) * (y1 - y0);
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = (n, a) => { const e = document.createElementNS(ns, n);
+    for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+  const g = el('g', {});
+  [0.5, 1.0, 1.5, 2.0, 2.5].forEach(v => {
+    g.appendChild(el('line', {class:'gl', x1:x0, x2:x1, y1:Y(v), y2:Y(v)}));
+    const t = el('text', {class:'tk', x:x0 - 9, y:Y(v) + 4, 'text-anchor':'end'});
+    t.textContent = v.toFixed(1); g.appendChild(t);
+  });
+  [0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25].forEach(v => {
+    const t = el('text', {class:'tk', x:X(v), y:y1 + 20, 'text-anchor':'middle'});
+    t.textContent = v.toFixed(2); g.appendChild(t);
+  });
+  g.appendChild(el('line', {class:'ax', x1:x0, x2:x1, y1:y1, y2:y1}));
+  g.appendChild(el('line', {class:'ax', x1:x0, x2:x0, y1:y0, y2:y1}));
+
+  const xt = el('text', {class:'at', x:(x0 + x1) / 2, y:y1 + 44, 'text-anchor':'middle'});
+  xt.textContent = 'ProteinMPNN score (negative log-likelihood — lower is better)';
+  g.appendChild(xt);
+  const yt = el('text', {class:'at', x:-(y0 + y1) / 2, y:16,
+    'text-anchor':'middle', transform:'rotate(-90)'});
+  yt.textContent = 'Cα-RMSD to design (Å) — lower is better';
+  g.appendChild(yt);
+
+  g.appendChild(el('line', {class:'cut', x1:x0, x2:x1, y1:Y(2.0), y2:Y(2.0)}));
+  const cl = el('text', {class:'cutlbl', x:x1 - 4, y:Y(2.0) - 7, 'text-anchor':'end'});
+  cl.textContent = 'RMSD cut, 2.0 Å';
+  g.appendChild(cl);
+
+  const co = el('text', {class:'callout', x:x0 + 12, y:y0 + 20});
+  const l1 = el('tspan', {x:x0 + 12, dy:'0'});
+  l1.appendChild(document.createTextNode('Spearman '));
+  const big = el('tspan', {class:'big'});
+  big.textContent = 'ρ = ' + fmtRho(DATA.correlations.mpnn_rmsd);
+  l1.appendChild(big);
+  co.appendChild(l1);
+  const l2 = el('tspan', {x:x0 + 12, dy:'18'});
+  l2.textContent = 'no relationship — score cannot rank candidates';
+  co.appendChild(l2);
+  g.appendChild(co);
+
+  const named = {design_15_s4:1, design_12_s4:1};
+  DATA.points.forEach(p => {
+    const cx = X(p.mpnn), cy = Y(p.rmsd);
+    let node;
+    if (p.ok) {
+      node = el('circle', {class:'pt ok', cx:cx, cy:cy, r:4.6});
+    } else {
+      const s = 5.4;
+      node = el('polygon', {class:'pt bad',
+        points:[cx, cy - s, cx + s * 0.92, cy + s * 0.72, cx - s * 0.92, cy + s * 0.72].join(' ')});
+    }
+    const name = p.bb + '_s' + p.s;
+    node.dataset.label = name + '  ·  MPNN ' + p.mpnn.toFixed(3) + '  ·  RMSD ' +
+      p.rmsd.toFixed(2) + ' Å  ·  TM ' + p.tm.toFixed(2) + '  ·  pLDDT ' + p.plddt.toFixed(1) +
+      (p.ok ? '' : '  ·  FAILED, coverage ' + (p.cov * 100).toFixed(0) + '%');
+    node.dataset.ok = p.ok ? '1' : '0';
+    g.appendChild(node);
+    if (named[name]) g.appendChild(el('circle', {class:'ring', cx:cx, cy:cy, r:9}));
+  });
+  svg.appendChild(g);
+
+  const tip = document.getElementById('tip');
+  const wrap = svg.parentElement;
+  svg.addEventListener('mousemove', e => {
+    const t = e.target;
+    if (!t.dataset || !t.dataset.label) return;
+    tip.innerHTML = '<span class="' + (t.dataset.ok === '1' ? 't-name' : 't-bad') + '">' +
+      t.dataset.label + '</span>';
+    tip.classList.add('on');
+    const r = wrap.getBoundingClientRect();
+    let left = e.clientX - r.left + 14;
+    const top = e.clientY - r.top - 12;
+    if (left + tip.offsetWidth > r.width) left = r.width - tip.offsetWidth - 4;
+    if (left < 0) left = 0;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  });
+  svg.addEventListener('mouseleave', () => tip.classList.remove('on'));
+})();
+
+/* ---------- table view of the 64 points ---------- */
+(function pointTable(){
+  const rows = DATA.points.slice().sort((a, b) => a.rmsd - b.rmsd);
+  let h = '<thead><tr><th>Sequence</th><th class="num">MPNN</th><th class="num">RMSD Å</th>' +
+    '<th class="num">TM</th><th class="num">pLDDT</th><th class="num">Coverage</th>' +
+    '<th>Self-consistent</th></tr></thead><tbody>';
+  rows.forEach(p => {
+    h += '<tr><td class="mono">' + p.bb + '_s' + p.s + '</td>' +
+      '<td class="num">' + p.mpnn.toFixed(3) + '</td>' +
+      '<td class="num">' + p.rmsd.toFixed(2) + '</td>' +
+      '<td class="num">' + p.tm.toFixed(3) + '</td>' +
+      '<td class="num">' + p.plddt.toFixed(1) + '</td>' +
+      '<td class="num">' + (p.cov * 100).toFixed(0) + '%</td>' +
+      '<td>' + (p.ok ? '<span class="pill full">yes</span>'
+                     : '<span class="pill part">no</span>') + '</td></tr>';
+  });
+  document.getElementById('pointtable').innerHTML = h + '</tbody>';
+})();
+
+/* ---------- the step 6 decision table ---------- */
+(function decision(){
+  const table = document.getElementById('decisiontable');
+  const note = document.getElementById('axis-note');
+  const maxD = Math.max(...DATA.backbones.map(b => b.dsasa));
+  const btnI = document.getElementById('by-interface');
+  const btnD = document.getElementById('by-design');
+
+  const NOTES = {
+    interface: 'Ranked the way step 3 sees the problem: buried area first. <b>design_5</b> leads — ' +
+      'the widest interface of the twenty, 12 contacts, all six hotspots. Step 5 then found only ' +
+      '3 of its 8 sequences refold: it is a helical hairpin that ESMFold predicts as one straight ' +
+      'helix, confidently (pLDDT 90). Interface quality and designability are different axes, and ' +
+      'step 3 cannot see the second one.',
+    design: 'Ranked the way step 5 sees it: self-consistency first, then best RMSD. <b>design_12</b> ' +
+      'leads — 8/8 sequences refold and one hits 0.40 Å — at the cost of 67 Å² of buried area against ' +
+      'design_5. <b>design_14</b> is the quiet compromise: 404 Å², 8/8, 0.43 Å, and the most compact ' +
+      'backbone of the eight (Rg ratio 1.06).'
+  };
+
+  function render(axis){
+    const rows = DATA.backbones.slice().sort(axis === 'interface'
+      ? (a, b) => b.dsasa - a.dsasa
+      : (a, b) => (b.pass - a.pass) || (a.best_rmsd - b.best_rmsd));
+    let h = '<thead><tr><th>Rank</th><th>Backbone</th><th class="num">Buried area</th>' +
+      '<th class="num">Contacts</th><th class="num">Hotspots</th><th class="num">Best RMSD</th>' +
+      '<th class="num">Median RMSD</th><th>Self-consistent</th><th class="num">Rg ratio</th>' +
+      '<th class="num">Length</th></tr></thead><tbody>';
+    rows.forEach((b, i) => {
+      const lead = (axis === 'interface' && b.backbone === 'design_5') ? ' class="lead-interface"'
+                 : (axis === 'design' && b.backbone === 'design_12') ? ' class="lead-design"' : '';
+      h += '<tr' + lead + '><td class="num">' + (i + 1) + '</td>' +
+        '<td class="mono">' + b.backbone + '</td>' +
+        '<td class="num"><span class="bar-cell"><span class="mono">' + b.dsasa.toFixed(0) + ' Å²</span>' +
+        '<span class="track"><span class="fill" style="width:' +
+        (b.dsasa / maxD * 100).toFixed(1) + '%"></span></span></span></td>' +
+        '<td class="num">' + b.contacts + '</td>' +
+        '<td class="num">' + b.hotspots + '/6</td>' +
+        '<td class="num">' + b.best_rmsd.toFixed(2) + '</td>' +
+        '<td class="num">' + b.median_rmsd.toFixed(2) + '</td>' +
+        '<td><span class="pill ' + (b.pass === b.n ? 'full' : 'part') + '">' +
+        b.pass + '/' + b.n + '</span></td>' +
+        '<td class="num">' + b.rg_ratio.toFixed(2) + '</td>' +
+        '<td class="num">' + b.binder_len + '</td></tr>';
+    });
+    table.innerHTML = h + '</tbody>';
+    note.innerHTML = NOTES[axis];
+    btnI.setAttribute('aria-pressed', axis === 'interface' ? 'true' : 'false');
+    btnD.setAttribute('aria-pressed', axis === 'design' ? 'true' : 'false');
+  }
+  btnI.addEventListener('click', () => render('interface'));
+  btnD.addEventListener('click', () => render('design'));
+  render('interface');
+})();
+
+/* ---------- renders: respect reduced motion, allow pause ---------- */
+(function renders(){
+  const imgs = Array.from(document.querySelectorAll('.plate img'));
+  const btn = document.getElementById('motion');
+  let playing = true;
+  // the animated source ships once, as the img's own src -- stash it before any swap
+  imgs.forEach(im => { im.dataset.gif = im.getAttribute('src'); });
+  function set(on){
+    playing = on;
+    imgs.forEach(im => { im.src = on ? im.dataset.gif : im.dataset.still; });
+    btn.textContent = on ? 'Pause' : 'Play';
+    btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+  }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce && reduce.matches) set(false);
+  btn.addEventListener('click', () => set(!playing));
+})();
+</script>
