@@ -17,6 +17,7 @@ RUN        := conda run --no-capture-output -n              # run a command insi
 .PHONY: help \
         envs envs-rfdiffusion envs-proteinmpnn envs-esm envs-docs setup-rfdiffusion \
         gpu-check verify verify-rfdiffusion verify-proteinmpnn verify-esm verify-docs \
+        rank rank-table rank-figures \
         dashboard dashboard-frames dashboard-gifs dashboard-html clean-dashboard \
         docs docs-build clean-docs
 
@@ -64,6 +65,15 @@ verify-esm:  ## Check the esm env (client libs + TMalign)
 verify-docs:  ## Check the docs env and that the site builds clean
 	$(ACTIVATE) && $(RUN) docs mkdocs --version
 	$(ACTIVATE) && $(RUN) docs mkdocs build --strict --site-dir /tmp/mkdocs-verify && rm -rf /tmp/mkdocs-verify && echo "docs OK | strict build passes"
+
+# --- Step 6: ranking ---------------------------------------------------------
+rank: rank-figures  ## Rank the validated designs and write results/top_designs/
+
+rank-table:  ## Apply the gate, rank, write README + ranking.tsv + panel.fasta
+	$(ACTIVATE) && $(RUN) esm python scripts/06_rank.py
+
+rank-figures: rank-table  ## Render the selected panel and write the complexes
+	$(ACTIVATE) && $(RUN) esm pymol -cq scripts/06c_render_top.py
 
 # --- Dashboard ---------------------------------------------------------------
 # Three steps in two different envs: PyMOL lives in esm, Pillow lives in

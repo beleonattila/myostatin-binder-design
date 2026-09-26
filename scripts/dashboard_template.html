@@ -107,6 +107,7 @@ svg.flow{display:block; width:100%; height:auto; max-width:100%}
 .flow .step{font:400 11px var(--sans); fill:var(--ink-3)}
 .flow .bar{fill:var(--series-1); fill-opacity:.17; stroke:var(--series-1); stroke-width:1}
 .flow .bar.open{fill:var(--hotspot); fill-opacity:.13; stroke:var(--hotspot); stroke-dasharray:4 3}
+.flow .bar.final{fill:var(--good); fill-opacity:.2; stroke:var(--good)}
 .flow .arw{stroke:var(--ink-3); stroke-width:1.2; fill:none}
 
 /* ---- stage spine ---- */
@@ -246,16 +247,16 @@ footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
   <p class="eyebrow">De novo binder design · GDF-8 type II knuckle epitope</p>
   <h1>Myostatin Binder Pipeline</h1>
   <p class="lede">
-    Five stages run, one open. Twenty diffused backbones narrowed to eight, sixty-four
-    designed sequences refolded, fifty-eight self-consistent — and two metrics that
-    disagree about which design leads.
+    All six stages run. Twenty diffused backbones narrowed to eight, sixty-four
+    designed sequences refolded, fifty-eight self-consistent, and a final panel of five —
+    selected by gating on designability and ranking on interface area.
   </p>
   <div class="runline">
     <span>target <b>5JI1</b> chain A</span>
     <span>hotspots <b>A33 A34 A85 A87 A93 A95</b></span>
     <span>GPU <b>RTX 4050, 6 GB</b></span>
-    <span>steps 1–5 <b>complete</b></span>
-    <span>step 6 <b>open</b></span>
+    <span>steps 1–6 <b>complete</b></span>
+    <span>panel <b>5 designs</b></span>
   </div>
 
   <div class="figures">
@@ -264,7 +265,7 @@ footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
     <div class="fig"><div class="n" id="f-seqs">64</div><div class="k">sequences designed</div></div>
     <div class="fig"><div class="n" id="f-sc">58 <small>/ 64</small></div><div class="k">self-consistent</div></div>
     <div class="fig"><div class="n" id="f-best">0.40 <small>Å</small></div><div class="k">best Cα-RMSD</div></div>
-    <div class="fig open"><div class="n">3–5</div><div class="k">to pick in step 6</div></div>
+    <div class="fig open"><div class="n">5</div><div class="k">selected for the panel</div></div>
   </div>
 </header>
 
@@ -316,12 +317,12 @@ footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
             <text class="val" x="144" y="237">58</text>
             <text class="desc" x="414" y="237">self-consistent · 6 fail on coverage</text>
             <line class="arw" x1="140" y1="248" x2="140" y2="262" marker-end="url(#ah)"></line>
-            <text class="step" x="152" y="260">rank, then copy the top 3–5 to results/top_designs/</text>
+            <text class="step" x="152" y="260">gate on designability, rank on interface area, one per backbone</text>
 
             <text class="lbl" x="118" y="285" text-anchor="end">Step 6</text>
-            <rect class="bar open" x="132" y="268" width="272" height="24" rx="2"></rect>
-            <text class="val" x="144" y="285">58</text>
-            <text class="desc" x="414" y="285">candidates awaiting a ranking axis</text>
+            <rect class="bar final" x="132" y="268" width="23" height="24" rx="2"></rect>
+            <text class="val" x="165" y="285">5</text>
+            <text class="desc" x="188" y="285">selected · 41 of 58 clear the gate, one representative per backbone</text>
             <text class="step" x="132" y="315">Bar width is proportional within each unit. Backbones (top three) and sequences
               (bottom three) are different units, scaled separately.</text>
           </g>
@@ -458,24 +459,25 @@ footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
         </div>
       </div>
 
-      <div class="stage is-open">
+      <div class="stage">
         <div class="idx">06</div>
         <div>
           <h3>Ranking and write-up</h3>
-          <div class="tool">not yet run</div>
-          <span class="chip open">open</span>
+          <div class="tool">make rank · 2026-09-26</div>
+          <span class="chip done">done</span>
         </div>
         <div>
           <div class="metrics">
-            <div class="metric"><div class="mv">58</div><div class="mk">candidates</div></div>
-            <div class="metric"><div class="mv">8</div><div class="mk">parent backbones</div></div>
-            <div class="metric"><div class="mv">3–5</div><div class="mk">to select</div></div>
-            <div class="metric"><div class="mv">—</div><div class="mk">ranking axis</div></div>
+            <div class="metric"><div class="mv">41 <span class="u">/ 58</span></div><div class="mk">clear the gate</div></div>
+            <div class="metric"><div class="mv">8 <span class="u">/ 8</span></div><div class="mk">backbones represented</div></div>
+            <div class="metric"><div class="mv">5</div><div class="mk">selected</div></div>
+            <div class="metric"><div class="mv">10 <span class="u">Å²</span></div><div class="mk">interface tie band</div></div>
+            <div class="metric"><div class="mv">design_14_s7</div><div class="mk">single best pick</div></div>
           </div>
           <p class="sub">
-            The one decision left, and the two upstream steps disagree on it. Step 3 ranks by buried
-            interface and puts <b>design_5</b> first; Step 5 ranks by designability and puts design_5 last.
-            Whichever axis is chosen has to be stated in the write-up.
+            Designability is a <b>gate</b>, not a score — a sequence that does not fold to its backbone has
+            no interface. Interface area is the <b>objective</b>; one representative per backbone is a
+            <b>constraint</b>. Every backbone keeps a sequence, design_5 included, so no axis had to lose.
           </p>
         </div>
       </div>
@@ -511,8 +513,16 @@ footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
   </section>
 
   <section id="decision">
-    <div class="shead"><h2>The open decision</h2><span class="tag">Step 6 · 8 backbones</span></div>
+    <div class="shead"><h2>How the panel was chosen</h2><span class="tag">Step 6 · decided</span></div>
     <div class="panel panel-pad">
+      <p class="note" style="margin-top:0">
+        The two axes never had to be reconciled by weighting them. <b>Designability is a gate</b> — a
+        sequence that does not fold to its designed backbone has no interface, so it is applied first,
+        pass/fail. <b>Interface area is the objective</b> among those that survive. 41 of the 58
+        self-consistent sequences clear the gate and all eight backbones keep at least one, so design_5
+        carries the widest interface into the panel on merit. Switch the axes below to see what each
+        one alone would have ranked.
+      </p>
       <div class="sorter" role="group" aria-label="Ranking axis">
         <button type="button" id="by-interface" aria-pressed="true">Rank by interface (step 3)</button>
         <button type="button" id="by-design" aria-pressed="false">Rank by designability (step 5)</button>
@@ -732,14 +742,18 @@ document.getElementById('rho-plddt').textContent = fmtRho(DATA.correlations.pldd
 
   const NOTES = {
     interface: 'Ranked the way step 3 sees the problem: buried area first. <b>design_5</b> leads — ' +
-      'the widest interface of the twenty, 12 contacts, all six hotspots. Step 5 then found only ' +
-      '3 of its 8 sequences refold: it is a helical hairpin that ESMFold predicts as one straight ' +
-      'helix, confidently (pLDDT 90). Interface quality and designability are different axes, and ' +
-      'step 3 cannot see the second one.',
-    design: 'Ranked the way step 5 sees it: self-consistency first, then best RMSD. <b>design_12</b> ' +
-      'leads — 8/8 sequences refold and one hits 0.40 Å — at the cost of 67 Å² of buried area against ' +
-      'design_5. <b>design_14</b> is the quiet compromise: 404 Å², 8/8, 0.43 Å, and the most compact ' +
-      'backbone of the eight (Rg ratio 1.06).'
+      'the widest interface of the twenty, 12 contacts, all six hotspots — and it takes rank 1 in the ' +
+      'final panel, because one of its eight sequences (design_5_s2) does clear the designability gate. ' +
+      'It is still the highest-variance pick in the set: the other seven are a helical hairpin that ' +
+      'ESMFold predicts as one straight helix, confidently (pLDDT 90). Note that dSASA differences ' +
+      'under 10 Å² are noise in this backbone+CB representation — four backbones sit inside one such ' +
+      'band, and designability orders them.',
+    design: 'Ranked the way step 5 sees it: self-consistency first, then best RMSD. <b>design_4</b> ' +
+      'and <b>design_12</b> lead on refold rate, at the cost of 67–84 Å² of buried area against ' +
+      'design_5. This axis alone would drop the widest interface in the set to last place — which is ' +
+      'why designability is used as a threshold rather than a score. <b>design_14_s7</b> is the ' +
+      'recommended single pick either way: 404 Å², pLDDT 93.1, net charge 0, and the most compact ' +
+      'backbone of the twenty (Rg ratio 1.06).'
   };
 
   function render(axis){

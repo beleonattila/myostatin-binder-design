@@ -9,6 +9,79 @@
 
 ---
 
+## Session Log — 2026-09-26 (Step 6 EXECUTED — panel of 5 selected; pipeline complete)
+
+**Done:** the 58 survivors ranked and the final panel written to
+`results/top_designs/` (README, `ranking.tsv`, `panel.fasta`, 5 complexes, 6
+figures). Scripts: `scripts/06_rank.py`, `scripts/06c_render_top.py`. One
+command: **`make rank`**.
+
+**The ranking axis — the decision Step 5 left open.** Step 3 (buried area) and
+Step 5 (designability) were never two candidate rankings. They measure different
+things and only one is a threshold:
+
+- **Designability is a GATE, not a score.** A sequence that does not fold to its
+  designed backbone has no interface at all — its buried area describes a
+  structure that will not exist. Applied first, pass/fail.
+- **Interface area is the OBJECTIVE.** Among sequences that do fold, burying more
+  of the knuckle is the thing we set out to make.
+- **One representative per backbone is a CONSTRAINT.** Five sequences off one
+  backbone are one design with five spellings.
+
+**The gate** (stricter than Step 5's floor): self-consistent **and** RMSD ≤ 1.0 Å,
+TM ≥ 0.90, coverage = 1.00, mean pLDDT ≥ 85, min pLDDT ≥ 70.
+**41 of 58 clear it, and all 8 backbones keep at least one.** That is what
+dissolved the argument: `design_5` keeps exactly one sequence (`s2`), and one is
+enough to carry the widest interface into the panel on merit. No axis had to
+lose.
+
+**Tie band — the rule that actually decides a cut.** dSASA is a backbone+CB lower
+bound (Step 3: real receptor 293 Å² in these units vs 697 Å² full-atom, so
+sidechains are 58 % of a real interface). Differences of a few Å² are noise, so
+representatives within **10 Å²** are tied and ordered by designability. Four land
+in one band (406 → 402 Å²) and the band straddles the cut: **`design_15` misses
+the panel on a 4 Å² difference the representation cannot resolve.** `06_rank.py`
+prints every band into the README rather than hiding it — a rule that decides a
+cut has to be visible.
+
+**The panel:**
+
+| # | Sequence | Å² | RMSD | pLDDT | Gated | Rg | Charge |
+|---|---|---|---|---|---|---|---|
+| 1 | design_5_s2 | 469 | 0.48 | 85.5 | **1/8** | 1.29 | −2 |
+| 2 | design_18_s4 | 448 | 0.45 | 91.6 | 4/8 | 1.28 | −2 |
+| 3 | design_12_s4 | 402 | 0.40 | 90.2 | 7/8 | 1.29 | +3 |
+| 4 | design_11_s7 | 402 | 0.42 | 89.1 | 6/8 | 1.30 | +2 |
+| 5 | design_14_s7 | 404 | 0.43 | **93.1** | 5/8 | **1.06** | **0** |
+
+**If only one is made, make `design_14_s7`** — not the rank-1 design. Its
+interface is statistically indistinguishable from the middle of the panel, and it
+wins on every secondary axis: most compact backbone of the twenty (Rg ratio 1.06),
+highest pLDDT of any representative, and **net charge 0**, the one sequence that
+largely escapes ProteinMPNN's over-charging bias. `design_5_s2` leads the ranking
+but is the highest-variance pick in the set (1/8).
+
+**Superseded:** the old Step 6 recipe in this file and in
+`docs/methods/06-ranking.md` (filter `pTM > 0.7`, then rank by ProteinMPNN
+log-likelihood) is **dead on both clauses** — the API returns no pTM, and Step 5
+measured ρ = −0.06 between MPNN score and RMSD. Both documents now carry the real
+method.
+
+**Figure trap (new):** the first panel render coloured a binder `tv_orange`, the
+same colour the epitope hotspots use, and zoomed on the target alone so the five
+binders fell out of frame. Both fixed in `06c_render_top.py`; the shared view is
+now fitted with all binders visible so panels are comparable at one scale.
+
+**Honest limits, recorded in the deliverable README:** no binding has been
+demonstrated; the interface numbers are lower bounds from RFdiffusion's own
+docking, not an independent evaluation; ESMFold is a fallible judge with a known
+bias toward isolated helices, so design_5's 1/8 may be the judge, not the design.
+**The obvious next computational step is the orthogonal one this pipeline never
+ran: AlphaFold-Multimer or Boltz on binder + target, which tests the interface
+rather than the monomer fold.**
+
+---
+
 ## Session Log — 2026-08-12 (Step 5 EXECUTED — 64 sequences refolded, 58 self-consistent)
 
 **Done:** all 64 sequences folded with ESMFold via the ESM Atlas REST API,
@@ -498,7 +571,7 @@ and check the knuckle finger loops are resolved in the apo structure.
 4. ~~**Step 3 — First RFdiffusion run**~~ — **DONE 2026-08-12.** 20 designs, 17 pass triage, 8 shortlisted. See the Step 3 session log above.
 5. ~~**Step 4 — ProteinMPNN**~~ — **DONE 2026-08-12.** 64 sequences. See the Step 4 session log above.
 6. ~~**Step 5 — ESMFold validation**~~ — **DONE 2026-08-12.** 58/64 self-consistent. See the Step 5 session log above.
-7. **Step 6 — Ranking and write-up:** rank the 58 survivors from `esm_validation/scores.tsv`, pick the top 3–5, copy to `results/top_designs/` with a summary README and figures. **Decide and state the ranking axis:** Step 3 (buried area) and Step 5 (designability) disagree — design_5 leads on interface, design_12/14 lead on refolding.
+7. ~~**Step 6 — Ranking and write-up**~~ — **DONE 2026-09-26.** Panel of 5 in `results/top_designs/`. Axis: designability as a gate (41/58 clear it), interface area as the objective, one representative per backbone. See the 2026-09-26 session log. **Pipeline steps 1–6 are complete.**
 
 **Quick start command next session:** `cd` into the project and run `make verify` to confirm all three envs are still healthy before doing anything.
 
@@ -1014,6 +1087,14 @@ TMalign esm_predicted.pdb rfdiffusion_backbone.pdb
 
 ## Step 6 — Ranking and Final Selection
 
+> ⚠️ **SUPERSEDED 2026-09-26 — the recipe below is wrong on both clauses.** The
+> ESMFold API returns **no pTM**, so criterion 1 cannot be evaluated; and the
+> ProteinMPNN score **does not predict refold accuracy** (Spearman ρ = −0.06,
+> n = 64), so criterion 4 ranks on noise. The method actually used is in the
+> 2026-09-26 session log above and in `docs/methods/06-ranking.md`: designability
+> as a gate, interface area as the objective, one representative per backbone.
+> Kept here only to show what changed and why.
+
 Build a scoring table `esm_validation/scores.tsv`:
 
 ```
@@ -1080,8 +1161,8 @@ That sentence is technically precise, tells the full pipeline story, and demonst
 - [x] Step 4: **Sequences generated — 2026-08-12.** 64 sequences (8 backbones × 8) at T=0.1, chain B designed / chain A fixed, Cys omitted. Diversity healthy (66 % mean pairwise identity), no Cys, scores 0.957–1.225. **Hydrophobic gradient 0.33 → 0.46 → 0.57** (whole binder → epitope face → hotspot ring) confirms the sequences match the structural intent. Flag-name gotcha: it is `--pdb_path_chains`, **not** `--pdb_path_chains_to_design`. Scripts: `scripts/04_proteinmpnn.sh`, `scripts/04b_analyze_sequences.py`.
 - [x] Step 5: ESMFold validation env installed (API client + TMalign)
 - [x] Step 5: **ESMFold validation run — 2026-08-12.** All 64 sequences refolded via the ESM Atlas API; **58/64 (91 %) self-consistent** (RMSD < 2 Å, pLDDT ≥ 70, TM ≥ 0.5, coverage ≥ 90 %). Best `design_12_s4` at **0.40 Å**. Gotchas: API returns **no pTM** (substituted pLDDT + TM-score), **pLDDT on a 0–1 scale**, ~⅓ of calls 504. **Coverage filter is essential** — it caught 4 false passes where TMalign aligned only 30/52 residues at a flattering 0.55 Å. **MPNN score does not predict refolding** (Spearman −0.055 vs RMSD). Script: `scripts/05_esmfold.py`.
-- [ ] Step 6: Scoring table built, top designs ranked
-- [ ] Step 6: Final designs inspected in PyMOL
+- [x] Step 6: **Ranking executed — 2026-09-26.** Gate (RMSD ≤ 1.0 Å, TM ≥ 0.90, coverage = 1.00, pLDDT ≥ 85 mean / ≥ 70 min) passed by **41/58**, all 8 backbones represented; ranked by buried area with a 10 Å² tie band resolved on designability. Panel of 5 in `results/top_designs/`: design_5_s2, design_18_s4, design_12_s4, design_11_s7, design_14_s7. **Single best pick: design_14_s7** (Rg 1.06, pLDDT 93.1, net charge 0). Scripts: `06_rank.py`, `06c_render_top.py`; `make rank`.
+- [x] Step 6: Final designs inspected in PyMOL — `06a_inspect.py`, `06b_epitope_anatomy.py`, and the panel session `analysis/pymol_sessions/step6_panel.pse`.
 
 ---
 
