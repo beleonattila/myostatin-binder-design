@@ -1,0 +1,9 @@
+- inference.input_pdb=/home/attila/Desktop/Projects/de-novo-p-Myosttin/myostatin_test/data/prepared/myostatin_target.pdb
+- inference.output_prefix=/home/attila/Desktop/Projects/de-novo-p-Myosttin/myostatin_test/rfdiffusion/outputs/design
+- contigmap.contigs=[A1-50/A65-109/0 45-60]
+- ppi.hotspot_res=[A33,A34,A85,A87,A93,A95]
+- inference.num_designs=20
+- diffuser.T=50
+- denoiser.noise_scale_ca=0
+- denoiser.noise_scale_frame=0
+- inference.empty_cache_per_design=True

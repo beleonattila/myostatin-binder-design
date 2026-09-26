@@ -12,11 +12,14 @@ data/prepared/*
 *.pt
 *.ckpt
 
+# The RFdiffusion backbones are an EXCEPTION to "regenerable": the run was made
+# with inference.deterministic=false and no seed, and no seed was recorded in the
+# .trb or the hydra config, so these 20 backbones cannot be reproduced. Every
+# downstream number in this repo traces back to them, so they are committed.
+# Only the denoising trajectories (121 MB, genuinely disposable) stay ignored.
+rfdiffusion/outputs/traj/
+
 # Tool outputs — regenerable from scripts; commit only curated top designs.
-rfdiffusion/outputs/*
-!rfdiffusion/outputs/.gitkeep
-rfdiffusion/logs/*
-!rfdiffusion/logs/.gitkeep
 proteinmpnn/outputs/*
 !proteinmpnn/outputs/.gitkeep
 proteinmpnn/logs/*
